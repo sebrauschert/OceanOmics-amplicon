@@ -1,15 +1,12 @@
 #'''''''''''''''''''''''''''''''''''''''''''''''''''
-#'SETUP FOR DADA2 ANALYSIS
-#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-
-# Install DADA2
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-# BiocManager::install("dada2", version = "3.13")
-
-# Install tidyverse
-# install.packages('tidyverse')
-
+#' DADA2
+#' Notes:
+#' This script was run on my Nimbus instance and alle folders are relative to the
+#' project folder at /data/ubuntu/analysed_data/OceanOmics/metabarcoding/20XXXX-voyage1_Amplicon_Rauschert
+#'
+#' Author: Priscila Goncalves, adapted by Seb Rauschert
+#' Data: 20/10/2021
+#',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
 #'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 #'ANALYSIS
@@ -78,22 +75,9 @@ out <- filterAndTrim(fwd = raw_forward,
                      multithread = TRUE, 
                      verbose = TRUE)
 
-head(out)
-# reads.in reads.out
-# 16S2P4B-fish.R1.fq.gz      110        89
-# BY1_R1-fish.R1.fq.gz    136501    132777
-# BY1_R2-fish.R1.fq.gz    103384    100127
-# BY1_R3-fish.R1.fq.gz     97543     94420
-# BY1_R4-fish.R1.fq.gz    100832     97383
-# BY1_R5-fish.R1.fq.gz    113757    110345
 
 # visualise the quality of the trimmed reads
 plotQualityProfile(filtered_forward[1:12])
-
-# run seqkit stats on terminal 
-# seqkit stats -T /media/Priscila_ext_HD/Data/amplicon/MiSeq_voyage1/fish/02_Filtered/*_trimmed.fq.gz > /media/Priscila_ext_HD/Data/amplicon/MiSeq_voyage1/fish/02_Filtered/trimmed_seqkit_stats.txt 
-
-# Inspect Stats results and compile number into Excel spreadsheet on ShareFile - Minderoo_tags_Voyage1_sequencing
 
 # Learn the error rates
 errors_forward <- learnErrors(filtered_forward, multithread = TRUE)
@@ -155,8 +139,6 @@ head(track)
 tail(track)
 
 summary(track$nonchim)
-#    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#     25   69123   85764   82816  104328  134240 
 
 # plot out tracking of sample reads through stages ####
 samps <- row.names(track)
@@ -184,7 +166,7 @@ plyr::count(unlist(lapply(colnames(seq_table_nochim), function(x) stringi::stri_
 
 # Save the ASV sequences as .fa file
 
-asv_seqs <- colnames(seq_table_nochim)
+asv_seqs    <- colnames(seq_table_nochim)
 asv_headers <- vector(dim(seq_table_nochim)[2], mode="character")
 
 for (i in 1:dim(seq_table_nochim)[2]) {
@@ -194,9 +176,3 @@ for (i in 1:dim(seq_table_nochim)[2]) {
 # making and writing out a fasta of our final ASV seqs:
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
 write(asv_fasta, paste0("/data/voyage1",species,".fa"))
-
-# BLAST it 
-#blastn -db databases/nt \
-#-query voyage1.fa \
-#-evalue 1e-3 \
-#-num_threads 16 -html > voyage1_results
