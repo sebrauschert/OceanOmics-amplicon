@@ -9,10 +9,10 @@ eval "$(conda shell.bash hook)"
 conda activate datalad
 
 # Create a new directory based on input
-mkdir $(basename $1)_Amplicon_Rauschert
+mkdir $(basename $1)_Amplicon_Pearce
 
 # Enter the folder and make it a datalad container
-cd $(basename $1)_Amplicon_Rauschert
+cd $(basename $1)_Amplicon_Pearce
 
 echo 'Preparing data repository...'
 echo ''
@@ -44,12 +44,10 @@ echo 'path is:' $PWD
 
 # Set up the directory structure
 mkdir -p 00-raw-data \
-      01-qc_1 \
-      02-demultiplexed \
-      03-trim \
-      04-qc_2 \
-      05-dada2 \
-      06-taxa \
+      01-demultiplexed \
+      02-qc \
+      03-dada2 \
+      04-taxa \
       scripts
 
 # Place a README.md in every folder
@@ -64,12 +62,10 @@ echo "# problems encountered" >> README.md
 
 conda deactivate
 
-parallel cp README.md ::: 01-qc_1 \
-      02-demultiplexed \
-      03-trim \
-      04-qc_2 \
-      05-dada2 \
-      06-taxa
+parallel cp README.md ::: 01-demultiplexed \
+      02-qc \
+      03-dada2 \
+      04-taxa
 
 # Remove the readme file from the main fodler structure 
 rm README.md
