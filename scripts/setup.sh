@@ -44,10 +44,11 @@ echo 'path is:' $PWD
 
 # Set up the directory structure
 mkdir -p 00-raw-data \
-      01-demultiplexed \
-      02-qc \
+      01-QC \
+      02-demultiplexed \
       03-dada2 \
       04-taxa \
+      05-report \
       scripts
 
 # Place a README.md in every folder
@@ -62,10 +63,11 @@ echo "# problems encountered" >> README.md
 
 conda deactivate
 
-parallel cp README.md ::: 01-demultiplexed \
-      02-qc \
+parallel cp README.md ::: 01-QC \
+      02-demultiplexed \
       03-dada2 \
-      04-taxa
+      04-taxa \
+      05-report
 
 # Remove the readme file from the main fodler structure 
 rm README.md

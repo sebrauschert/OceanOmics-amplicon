@@ -1,30 +1,37 @@
-##run from dada core command
+#........................................................................
+# Analysis of amplicon data
+# Rowley Shoals, October 2019 and February 2021
+# Sebastian Rauschert
+# 23/03/2022
+#........................................................................
 
 library(dada2)
 library(tidyverse)
 library(RColorBrewer)
 
-assay="16S"
+voyage="RS21"
+assay="MiFish"
 
 # define path
-path         <- paste0("02-demultiplexed/", assay)
+path         <- paste0(getwd(),"/02-demultiplexed/", voyage, "/", assay)
 list.files(path)
 
 # loading index file
-tags <- read_csv(paste0("00-raw-data/adapters/index_list_voyages_3-4.csv"))
+tags <- read_csv(paste0("00-raw-data/adapters/",voyage,"_indices.csv"))
 
 # read in fastq files
 fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern="2.fq", full.names = TRUE))
 
+# extract the short sample name from the filename
 sample.names_Fs <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 sample.names_Rs <- sapply(strsplit(basename(fnRs), "_"), `[`, 1)
 
 # visualise the quality of the reads
 qualityprofile_Fs <- plotQualityProfile(fnFs[1:12])
-ggsave(plot = qualityprofile_Fs, filename = "05-dada2/QC_plots/RS_qualityprofile_Fs_16S_raw.pdf", height = 5, width = 7)
+ggsave(plot = qualityprofile_Fs, filename = paste0("03-dada2/QC_plots/RS_qualityprofile_Fs_",assay,"_raw.pdf"), height = 5, width = 7)
 qualityprofile_Rs <- plotQualityProfile(fnRs[1:12])
-ggsave(plot = qualityprofile_Rs, filename = "05-dada2/QC_plots/RS_qualityprofile_Rs_16S_raw.pdf", height = 5, width = 7)
+ggsave(plot = qualityprofile_Rs, filename = paste0("03-dada2/QC_plots/RS_qualityprofile_Rs_",assay, "_raw.pdf"), height = 5, width = 7)
 
 # check barcode lengths
 head(tags)
@@ -57,40 +64,56 @@ trim_len_Rv
 ## MiFish reverse primer = (+8bp index)CATAGTGGGGTATCTAATCCCAGTTTG = 35bp = 27bp trim
 
 # Assigns file names and place filtered files in filtered/sub directory
-filtered_path    <- file.path("05-dada2/filtered")
+filtered_path    <- file.path(paste0(getwd(),"/03-dada2/filtered_", voyage, "_", assay))
 filtFs <- file.path(filtered_path,
-                    paste0(sample.names_Fs, "_", assay, "_trimmed.fq.gz"))
+                    paste0(sample.names_Fs, "_", assay, "1_trimmed.fq.gz"))
 filtRs <- file.path(filtered_path,
-                    paste0(sample.names_Rs, "_", assay, "_trimmed.fq.gz"))
+                    paste0(sample.names_Rs, "_", assay, "2_trimmed.fq.gz"))
 names(filtFs) <- sample.names_Fs
 names(filtRs) <- sample.names_Rs
 
 # Trimming based on quality + barcode/primer removal
 ## the maxEE = expected error - filtering based on quality
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, trimLeft = trim_len_Fw,trimRight = trim_len_Rv,
-                     maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
-                     compress=TRUE, multithread=TRUE) # On Windows set multithread=FALSE
+out <- filterAndTrim(fnFs, filtFs, 
+                     fnRs, filtRs, 
+                     trimLeft = trim_len_Fw,
+                     trimRight = trim_len_Rv,
+                     maxN=0, 
+                     maxEE=c(2,2), 
+                     truncQ=2, 
+                     rm.phix=TRUE,
+                     compress=TRUE, 
+                     multithread=TRUE) # On Windows set multithread=FALSE
+
 head(out)
-save(out, file = "05-dada2/tempfiles/quality_trim_out.RData")
-save(filtFs, filtRs, file = "05-dada2/tempfiles/filtered.RData")
+#......................................................................................
+# CHECKPOINT Save the result
+saveRDS(out, '03-dada2/tmpfiles/filterAndTrim_out.rds')
+#out <- readRDS('03-dada2/tmpfiles/filterAndTrim_out.rds')
+#......................................................................................
+
 
 # visualise the quality of the trimmed reads
 qualityprofile_Fs <- plotQualityProfile(filtFs[1:12])
-ggsave(plot = qualityprofile_Fs, filename = "05-dada2/QC_plots/RS_qualityprofile_Fs_16S_trimmed.pdf", height = 5, width = 7)
+ggsave(plot = qualityprofile_Fs, filename = paste0("03-dada2/QC_plots/RS_qualityprofile_Fs_", assay, "_trimmed.pdf"), height = 5, width = 7)
 qualityprofile_Rs <- plotQualityProfile(filtRs[1:12])
-ggsave(plot = qualityprofile_Rs, filename = "05-dada2/QC_plots/RS_qualityprofile_Rs_16S_trimmed.pdf", height = 5, width = 7)
+ggsave(plot = qualityprofile_Rs, filename = paste0("03-dada2/QC_plots/RS_qualityprofile_Rs_", assay, "_trimmed.pdf"), height = 5, width = 7)
 
 # Learn the error rates
 errors_forward <- learnErrors(filtFs, multithread = TRUE)
-errors_reverse <- learnErrors(filtRs, multithread=TRUE)
-save(errors_forward, errors_reverse, file = "05-dada2/tempfiles/error_rates.RData")
+errors_reverse <- learnErrors(filtRs, multithread = TRUE)
 
+#......................................................................................
+# CHECKPOINT Save the result
+save(errors_forward, errors_reverse, file = "03-dada2/tmpfiles/error_rates.RData")
+#load("03-dada2/tmpfiles/error_rates.RData")
+#......................................................................................
 
 # visualise the estimated error rates
 errorsplot_Fs <- plotErrors(errors_forward, nominalQ = TRUE)
-ggsave(plot = errorsplot_Fs, filename = "05-dada2/QC_plots/RS_errorsplot_Fs_16S.pdf", height = 5, width = 7)
+ggsave(plot = errorsplot_Fs, filename = paste0("03-dada2/QC_plots/RS_errorsplot_Fs_", assay,".pdf"), height = 5, width = 7)
 errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
-ggsave(plot = qualityprofile_Rs, filename = "05-dada2/QC_plots/RS_errorsplot_Rs_16S.pdf", height = 5, width = 7)
+ggsave(plot = qualityprofile_Rs, filename = paste0("03-dada2/QC_plots/RS_errorsplot_Rs_", assay, ".pdf"), height = 5, width = 7)
 
 # De-replication - check if we should do this if we want abundance estimates
 ## supposedly for high resolution sample interference from amplicon data - removes sequencing errors
@@ -101,8 +124,12 @@ head(derep_forward)
 derep_reverse        <- derepFastq(filtRs, verbose = TRUE)
 names(derep_reverse) <- sample.names_Rs
 head(derep_reverse)
-save(derep_forward, derep_reverse, file = "05-dada2/tempfiles/dereplicated.RData")
 
+#......................................................................................
+# CHECKPOINT Save the result
+save(derep_forward, derep_reverse, file = "03-dada2/tmpfiles/dereplicated.RData")
+#load("03-dada2/tmpfiles/dereplicated.RData")
+#......................................................................................
 
 # Sample inference
 dada_forward <- dada(derep_forward, 
@@ -117,7 +144,11 @@ dada_reverse <- dada(derep_reverse,
                      multithread = TRUE, 
                      verbose = TRUE)
 
-save(dada_forward, dada_reverse, file = "05-dada2/tempfiles/core_sample_inference.RData")
+#......................................................................................
+# CHECKPOINT Save the result
+save(dada_forward, dada_reverse, file = "03-dada2/tmpfiles/core_sample_inference.RData")
+#load("03-dada2/tmpfiles/core_sample_inference.RData")
+#......................................................................................
 
 # inspect the dada-class object
 dada_forward[[1]]
@@ -125,7 +156,13 @@ dada_reverse[[1]]
 
 # merge paired end reads
 mergers <- mergePairs(dada_forward, filtFs, dada_reverse, filtRs, verbose=TRUE)
-save(mergers, file = "05-dada2/tempfiles/merged.RData")
+
+#......................................................................................
+# CHECKPOINT Save the result
+save(mergers, file = "03-dada2/tmpfiles/merged.RData")
+#load("03-dada2/tmpfiles/merged.RData")
+#......................................................................................
+
 
 # Inspect the merger data.frame from the first sample
 head(mergers[[1]])
@@ -145,11 +182,15 @@ seq_table_nochim <- removeBimeraDenovo(seq_table,
                                        verbose = TRUE)
 
 dim(seq_table_nochim)
-save(seq_table_nochim, file = "05-dada2/tempfiles/seq_table_nochim.RData")
+
+#......................................................................................
+# CHECKPOINT Save the result
+save(seq_table_nochim, file = "03-dada2/tmpfiles/seq_table_nochim.RData")
+#load("03-dada2/tmpfiles/seq_table_nochim.RData")
+#......................................................................................
 
 # which percentage of our reads did we keep?
 sum(seq_table_nochim) / sum(seq_table)
-
 dim(seq_table_nochim) [2] / dim(seq_table)[2]
 
 ## Overview of counts throughout
@@ -200,7 +241,8 @@ track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c('input
   xlab('Sequencing stage') +
   theme_bw() +
   theme(legend.position = "bottom")
-track_boxplot_Fw
+
+
 
 track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c('input', 'filtered', 'denoised', 'tabled', 'nonchim')), reads)) +
   geom_boxplot(outlier.shape = NA) +
@@ -210,11 +252,12 @@ track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c('input
   xlab('Sequencing stage') +
   theme_bw() +
   theme(legend.position = "bottom")
-track_boxplot_Rv
+
 
 # save plots
-ggsave(plot = track_boxplot_Fw, filename = "05-dada2/QC_plots/track_reads_16S_Fw.pdf", height = 5, width = 7)
-ggsave(plot = track_boxplot_Rv, filename = "05-dada2/QC_plots/track_reads_16S_Rv.pdf", height = 5, width = 7)
+ggsave(plot = track_boxplot_Fw, filename = paste0("03-dada2/QC_plots/Samples_through_stages_Fw_",assay,"_raw.pdf"), height = 10, width = 12)
+ggsave(plot = track_boxplot_Rv, filename = paste0("03-dada2/QC_plots/Samples_through_stages_Rv_",assay,"_raw.pdf"), height = 10, width = 12)
+
 
 #Check if all sequences are the same length
 plyr::count(unlist(lapply(colnames(seq_table_nochim), function(x) stringi::stri_length(x))))
@@ -235,11 +278,15 @@ as_tibble(asv_final_table) %>%
   mutate(sample_id = IDs) %>%
   select(sample_id, asv_headers) -> asv_final_table
 
-write_csv(asv_final_table, paste0("05-dada2/RS_asv_final_table", "_" ,assay,".csv"))
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------
+# SAVE RESULTS
+# Save the final tables and output
+write_csv(asv_final_table, paste0("03-dada2/", voyage, "_asv_final_table", "_" ,assay,".csv"))
 
 # making and writing out a fasta of our final ASV seqs:
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
-write(asv_fasta, paste0("05-dada2/RS_",assay,".fa")) ## input for blastn
+write(asv_fasta, paste0("03-dada2/", voyage, "_",assay,".fa")) ## input for blastn
 
 # Prepare ASV table for LCA (Lowest Common Ancestor?)
 ## Here we rename the sequences to ASV with an ID, to match the blast results
@@ -260,10 +307,9 @@ asv_for_lca <- asv_for_lca %>%
   select((headers_lca)) %>%
   as_tibble()
 
-write_delim(asv_for_lca, paste0("05-dada2/RS_",assay,"_asv.tsv"), delim = '\t')
+asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
+write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_lca_",assay,"_asv.tsv"), delim = '\t')
 
-dat <- read_delim('/DATA/analysed_data/OceanOmics/amplicon/05-dada2/RS_16S_asv.tsv', delim='\t')
-dat[,1] <- str_remove(as.vector(unlist(dat[,1])) , ">")
-write_delim(dat, paste0("05-dada2/RS_",assay,"_asv.tsv"), delim = '\t')
+
 
 
