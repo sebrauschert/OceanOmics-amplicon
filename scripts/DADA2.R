@@ -49,12 +49,12 @@ dada2_analysis <- function(voyageID = voyageID,
     # visualise the quality of the reads
     qualityprofile_Fs <- plotQualityProfile(fnFs[1:12])
     ggsave(plot = qualityprofile_Fs, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Fs_",assay,"_raw.pdf"), 
+           filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Fs_",assay,"_raw.png"), 
            height = 5, 
            width = 7)
     qualityprofile_Rs <- plotQualityProfile(fnRs[1:12])
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Rs_", assay, "_raw.pdf"), height = 5, width = 7)
+           filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Rs_", assay, "_raw.png"), height = 5, width = 7)
     
     # check barcode lengths
     head(tags)
@@ -118,9 +118,9 @@ dada2_analysis <- function(voyageID = voyageID,
     
     # visualise the quality of the trimmed reads
     qualityprofile_Fs <- plotQualityProfile(filtFs[1:12])
-    ggsave(plot = qualityprofile_Fs, filename = paste0("03-dada2/QC_plots/",voyageID, "_qualityprofile_Fs_", assay, "_trimmed.pdf"), height = 5, width = 7)
+    ggsave(plot = qualityprofile_Fs, filename = paste0("03-dada2/QC_plots/",voyageID, "_qualityprofile_Fs_", assay, "_trimmed.png"), height = 5, width = 7)
     qualityprofile_Rs <- plotQualityProfile(filtRs[1:12])
-    ggsave(plot = qualityprofile_Rs, filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Rs_", assay, "_trimmed.pdf"), height = 5, width = 7)
+    ggsave(plot = qualityprofile_Rs, filename = paste0("03-dada2/QC_plots/", voyageID, "_qualityprofile_Rs_", assay, "_trimmed.png"), height = 5, width = 7)
     
     # Learn the error rates
     errors_forward <- learnErrors(filtFs, multithread = TRUE)
@@ -135,12 +135,12 @@ dada2_analysis <- function(voyageID = voyageID,
     # visualise the estimated error rates
     errorsplot_Fs <- plotErrors(errors_forward, nominalQ = TRUE)
     ggsave(plot = errorsplot_Fs, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "_errorsplot_Fs_", assay,".pdf"), 
+           filename = paste0("03-dada2/QC_plots/", voyageID, "_errorsplot_Fs_", assay,".png"), 
            height = 5, 
            width = 7)
     errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "_errorsplot_Rs_", assay, ".pdf"), 
+           filename = paste0("03-dada2/QC_plots/", voyageID, "_errorsplot_Rs_", assay, ".png"), 
            height = 5, 
            width = 7)
     
@@ -238,6 +238,7 @@ dada2_analysis <- function(voyageID = voyageID,
     rownames(track_Fs) <- sample.names_Fs
     head(track_Fs)
     tail(track_Fs)
+    write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
     
     #reverse reads track
     track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(seq_table), rowSums(seq_table_nochim))  %>%
@@ -248,6 +249,7 @@ dada2_analysis <- function(voyageID = voyageID,
     rownames(track_Rs) <- sample.names_Rs
     head(track_Rs)
     tail(track_Rs)
+    write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
     
     summary(track_Fs$nonchim)
     summary(track_Rs$nonchim)
@@ -289,11 +291,11 @@ dada2_analysis <- function(voyageID = voyageID,
     
     # save plots
     ggsave(plot = track_boxplot_Fw, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Fw_",assay,"_raw.pdf"), 
+           filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Fw_",assay,".png"), 
            height = 10, 
            width = 12)
     ggsave(plot = track_boxplot_Rv, 
-           filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Rv_",assay,"_raw.pdf"), 
+           filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Rv_",assay,".png"), 
            height = 10, 
            width = 12)
     
