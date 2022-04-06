@@ -57,6 +57,6 @@ sudo apt-get install mmv
 ### `Nextflow`
 
 ## Authors and contributors
-Jessica Pearce
-Sebastian Rauschert
-Priscila Goncalves
+Jessica Pearce  
+Sebastian Rauschert  
+Priscila Goncalves  
