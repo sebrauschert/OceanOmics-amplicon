@@ -5,7 +5,7 @@
 
 ROOT_DIR=$(pwd)
 
-declare -a VOYAGES=("RS19" "RS21")
+declare -a VOYAGES=$(ls 02-demultiplexed | grep -v "README.md" | grep -v "sample_names")
 declare -a ASSAYS=("16S" "MiFish")
 
 # User feedback
