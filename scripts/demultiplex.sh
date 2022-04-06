@@ -5,6 +5,9 @@
 voyageID=$1
 assay=$2
 
+# load amplicon environment
+eval "$(conda shell.bash hook)"
+conda activate amplicon
 
 # This script used cutadapt v3.2
 echo De-multiplexing

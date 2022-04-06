@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # QC for all data
-
+eval "$(conda shell.bash hook)"
+conda activate amplicon
 
 ROOT_DIR=$(pwd)
 

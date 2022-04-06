@@ -31,21 +31,8 @@ for voyage in ${VOYAGES[@]}
     # move the unnamed and unknowns into separate folders 
     mkdir unknown unnamed
     mv *unknown*.fq.gz unknown
-    mv 16S-*16S-*.fq.gz unnamed
+    mv ${assay}-*${assay}-*.fq.gz unnamed
     
   
   done
 done
-
-# Error message RS21 16S
-#16S-55F-16S-60R.R1.fq.gz , 16S-55F-16S-61R.R1.fq.gz -> RS-CL-BL-3_16S.1.fq.gz : collision.
-#16S-55F-16S-60R.R2.fq.gz , 16S-55F-16S-61R.R2.fq.gz -> RS-CL-BL-3_16S.2.fq.gz : collision.
-#16S-56F-16S-59R.R1.fq.gz , 16S-56F-16S-64R.R1.fq.gz -> RS-CL-S2-4_16S.1.fq.gz : collision.
-#16S-56F-16S-59R.R2.fq.gz , 16S-56F-16S-64R.R2.fq.gz -> RS-CL-S2-4_16S.2.fq.gz : collision.
-
-# Error message RS21 MiFish
-# MiFish-F15-MiFish-R4.R1.fq.gz , MiFish-F15-MiFish-R5.R1.fq.gz -> RS-CL-BL-3_MiFish.1.fq.gz : collision.
-# MiFish-F15-MiFish-R4.R2.fq.gz , MiFish-F15-MiFish-R5.R2.fq.gz -> RS-CL-BL-3_MiFish.2.fq.gz : collision.
-# MiFish-F16-MiFish-R3.R1.fq.gz , MiFish-F16-MiFish-R8.R1.fq.gz -> RS-CL-S2-4_MiFish.1.fq.gz : collision.
-# MiFish-F16-MiFish-R3.R2.fq.gz , MiFish-F16-MiFish-R8.R2.fq.gz -> RS-CL-S2-4_MiFish.2.fq.gz : collision.
-
