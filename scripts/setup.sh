@@ -50,7 +50,7 @@ echo 'path is:' $PWD
 mkdir -p 00-raw-data/indices \
       01-QC \
       02-demultiplexed/sample_names \
-      03-dada2 \
+      03-dada2/QC_plots \
       04-taxa \
       05-report \
       scripts

@@ -54,6 +54,11 @@ sudo apt-get install mmv
 
 ### Bash scripts
 
+#### Set up the analysis environment
+
+Firstly, download this GitHub repository to your local file system.
+
+
 ### `Nextflow`
 
 ## Authors and contributors

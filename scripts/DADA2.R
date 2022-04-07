@@ -10,20 +10,7 @@ library(dada2)
 library(tidyverse)
 library(RColorBrewer)
 
-voyageID="Voyage1"
-assay=c("16S", "MiFish")
 
-# After running the function below, this loop will run the full analysis across
-# all voyages and assays
-
-for(voyage in voyages) {
-  
-  for(assay in assays){
-    
-    dada2_analysis(voyage, assay)
-    
-  }
-}
 
 # DADA2 pipeline as function to 
 # enable writinga loop 
@@ -43,8 +30,9 @@ dada2_analysis <- function(voyageID = voyageID,
     fnRs <- sort(list.files(path, pattern="2.fq", full.names = TRUE))
     
     # extract the short sample name from the filename
-    sample.names_Fs <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
-    sample.names_Rs <- sapply(strsplit(basename(fnRs), "_"), `[`, 1)
+    # extract the short sample name from the filename
+    sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,"_16S.1.fq.gz"))))
+    sample.names_Rs <- as.character(sapply(basename(fnRs), function(x) unlist(stringr::str_remove(x,"_16S.2.fq.gz"))))
     
     # visualise the quality of the reads
     qualityprofile_Fs <- plotQualityProfile(fnFs[1:12])
@@ -354,3 +342,20 @@ dada2_analysis <- function(voyageID = voyageID,
 }
 
 
+#........................................................................
+# Running DADA2
+
+voyages = "Voyage1"
+assays  = c("16S", "MiFish")
+
+# After running the function below, this loop will run the full analysis across
+# all voyages and assays
+
+for(voyage in voyages) {
+  
+  for(assay in assays){
+    
+    dada2_analysis(voyage, assay)
+    
+  }
+}
