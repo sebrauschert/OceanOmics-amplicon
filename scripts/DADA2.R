@@ -29,9 +29,9 @@ dada2_analysis <- function(voyageID = voyageID,
   fnRs <- sort(list.files(path, pattern="2.fq", full.names = TRUE))
   
   # extract the short sample name from the filename
-  sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,"_16S.1.fq.gz"))))
-  sample.names_Rs <- as.character(sapply(basename(fnRs), function(x) unlist(stringr::str_remove(x,"_16S.2.fq.gz"))))
-  
+  sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".1.fq.gz")))))
+  sample.names_Rs <- as.character(sapply(basename(fnRs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".2.fq.gz")))))
+
   # Take a random subset of the samples and save one quality plot at 
   # a time so we can later on add them to the analysis report
   set.seed(4)
@@ -252,7 +252,7 @@ dada2_analysis <- function(voyageID = voyageID,
   rownames(track_Fs) <- sample.names_Fs
   head(track_Fs)
   tail(track_Fs)
-  write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
+  write.csv(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",voyageID,"_",assay,".csv"))
   
   #reverse reads track
   track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(seq_table), rowSums(seq_table_nochim))  %>%
@@ -263,7 +263,7 @@ dada2_analysis <- function(voyageID = voyageID,
   rownames(track_Rs) <- sample.names_Rs
   head(track_Rs)
   tail(track_Rs)
-  write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
+  write.csv(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",voyageID,"_",assay,".csv"))
   
   summary(track_Fs$nonchim)
   summary(track_Rs$nonchim)
@@ -305,11 +305,11 @@ dada2_analysis <- function(voyageID = voyageID,
   
   # save plots
   ggsave(plot = track_boxplot_Fw, 
-         filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Fw_",assay,".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyageID, "_samples_through_stages_Fw_",assay,".png"), 
          height = 10, 
          width = 12)
   ggsave(plot = track_boxplot_Rv, 
-         filename = paste0("03-dada2/QC_plots/", voyageID, "Samples_through_stages_Rv_",assay,".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyageID, "_samples_through_stages_Rv_",assay,".png"), 
          height = 10, 
          width = 12)
   
@@ -370,9 +370,8 @@ dada2_analysis <- function(voyageID = voyageID,
 
 #........................................................................
 # Running DADA2
-
-voyages = "Voyage1"
-assays  = c("16S", "MiFish")
+voyages = c("RSMTV5","PCV3")
+assays  = "MiFish"
 
 # After running the function below, this loop will run the full analysis across
 # all voyages and assays
