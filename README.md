@@ -1,5 +1,11 @@
 # OceanOmics Amplicon Pipeline
 
+
+<p align="center">
+  <img width="100" height="100" src="img/OceanOmics_logo.png">
+</p>
+
+
 ## Overview
 This repository contains the amplicon sequencing pipeline for taxonomic annotation of the samples collected in the OceanOmics project. It contains the `dada2` pipeline and 
 a `blastn` query for taxonomic identification.
