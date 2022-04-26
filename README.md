@@ -2,7 +2,7 @@
 
 
 <p align="center">
-  <img width="100" height="100" src="img/OceanOmics_logo.PNG">
+  <img width="350" height="300" src="img/OceanOmics_logo.png">
 </p>
 
 
