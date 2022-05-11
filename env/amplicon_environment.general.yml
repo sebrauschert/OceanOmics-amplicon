@@ -1,0 +1,26 @@
+name: amplicon
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - cutadapt=3.2=py37hf01694f_0
+  - dnaio=0.6.0=py37h73a75cf_0
+  - fastqc=0.11.9=hdfd78af_1
+  - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0
+  - fontconfig=2.13.1=h6c09931_0
+  - freetype=2.10.4=h5ab3b9f_0
+  - icu=58.2=he6710b0_3
+  - isa-l=2.30.0=ha770c72_4
+  - ld_impl_linux-64=2.35.1=h7274673_9
+  - openjdk=8.0.152=h7b6447c_3
+  - perl=5.26.2=h14c3975_0
+  - pigz=2.6=h27826a3_0
+  - pip=21.2.2=py37h06a4308_0
+  - python=3.7.10=hf930737_104_cpython
+  - python-isal=0.11.1=py37h5e8e339_0
+  - python_abi=3.7=2_cp37m
+  - readline=8.1=h27cfd23_0
+  - seqkit=2.0.0=h9ee0642_0
+  - setuptools=58.0.4=py37h06a4308_0
+  - sqlite=3.36.0=hc218d9a_0
