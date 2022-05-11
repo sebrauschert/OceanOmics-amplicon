@@ -13,14 +13,14 @@ a `blastn` query for taxonomic identification.
 The scripts contained herein are:
 
 ```
-01. setup.sh                            - to set up the analysis folder structure
-02. demultiplex.sh                      - to demultiplex the amplicon data added to the 00-raw-data folder
-03. rename_demux.sh                     - to rename the demultiplexed reads to their respective sample names; a index to sample name mapping file needs to be created
-04. seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
-05. DADA2.R                             - to trim the reads and create an amplicon sequencing variant table
-06. blastn.sh                           - to query the NCBI nt and taxa database
-07. LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
-08. ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
+01. 00-setup.sh                            - to set up the analysis folder structure
+02. 01-demultiplex.sh                      - to demultiplex the amplicon data added to the 00-raw-data folder
+03. 02-rename_demux.sh                     - to rename the demultiplexed reads to their respective sample names; a index to sample name mapping file needs to be created
+04. 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
+05. 04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table
+06. 05-blastn.sh                           - to query the NCBI nt and taxa database
+07. 06-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
+08. 07-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
 ```
 
 ## Dependencies
@@ -45,6 +45,12 @@ conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
 ```
 
+There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
+
+```
+conda env create -f env/datalad_environment.general.yml
+```
+
 ### Install `mmv`
 
 This pipeline requires the linux utility `mmv` installed on your system.
@@ -62,8 +68,32 @@ sudo apt-get install mmv
 
 #### Set up the analysis environment
 
-Firstly, download this GitHub repository to your local file system.
+Firstly, download this GitHub repository to your local file system, and cd into the repository's folder.
 
+Then to set up the local datalad project:
+
+```
+bash scripts/00-setup.sh myFirstProject
+```
+
+This will create a new folder containing a datalad project. It will be named myFirstProject_Amplicon_YOURUSERNAME in the folder you're currently in.
+The folder contains subfolders for all subsequent steps of the pipeline.
+
+```
+
+.
+├── 00-raw-data
+│   └── indices
+├── 01-QC
+├── 02-demultiplexed
+│   └── sample_names
+├── 03-dada2
+│   └── QC_plots
+├── 04-taxa
+├── 05-report
+└── scripts
+    └── LCA
+```
 
 ### `Nextflow`
 

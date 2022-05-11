@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+set -o pipefail # see http://redsymbol.net/articles/unofficial-bash-strict-mode/
+# set -u does not work well with SLURM, conda, or HPC module systems IME
 
 # Source conda so we can use it with environments
 #...............................................................................................
@@ -42,7 +45,7 @@ datalad save -m "Appended .gitattributes to not track text files"
 echo ''
 echo ''
 echo 'data repository created...'
-echo 'path is:' $PWD
+echo 'path is:' $(pwd)
     
 
 # Set up the directory structure
@@ -85,7 +88,8 @@ echo "# project" >> README.md
 echo "# analyst" >> README.md
 echo "# overview" >> README.md
 
-cp -r ../OceanOmics-amplicon/scripts .
+
+cp -r ../../OceanOmics-amplicon/scripts .
 
 conda activate datalad
 
