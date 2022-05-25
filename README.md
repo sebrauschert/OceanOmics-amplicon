@@ -37,6 +37,7 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `datalad` environment, to track data and analysis
 - `renv` for a version controlled `R` environment including the `renv` package
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
+- `taxonkit` for taxonomy-related tasks
 
 To create those environments, first install miniconda end then run the following:
 
@@ -44,6 +45,7 @@ To create those environments, first install miniconda end then run the following
 conda env create -f env/datalad_environment.yml
 conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
+conda env create -f env/taxonkit.yml
 ```
 
 There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
