@@ -6,15 +6,29 @@ INPUT: tab-delimited blastn output. Assuming that taxonomy ID is in this format:
 -outfmt "6 qseqid sseqid staxids sscinames scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp"
 
 This script also assumes that input has been filtered by 90% identity.
-awk '{if ($7 > 90) print}' blast.tsv > filtered_blast.tsv
+$ awk '{if ($7 > 90) print}' all_results.tsv > all_results.90perc.tsv
 
-This script also assumes that taxonkit is installed and that the data has been downloaded to the current working directory.
-mamba create -n taxonkit taxonkit -y
+And very vague hits have been removed, too:
+$ grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentified all_results.90perc.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv
+
+This script also assumes that taxonkit is installed and that the data has been downloaded to the default directory.
+mamba create -n taxonkit taxonkit pytaxonkit -y
 conda activate taxonkit
+mkdir ~/.taxonkit
+cd ~/.taxonkit
 wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 tar xzvf taxdump.tar.gz
 
- Usage: python computeLCA.py filtered_blast.tsv > Table_of_TaxonIDs.tsv
+Usage: python computeLCA.py filtered_blast.tsv > Table_of_TaxonIDs.tsv
+
+Currently, the output looks like this:
+ASV_0   6833    cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Gymnoplea;Calanoida Calanoida
+ASV_1   6833    cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Gymnoplea;Calanoida Calanoida
+ASV_2   6833    cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Gymnoplea;Calanoida Calanoida
+ASV_3   6833    cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Gymnoplea;Calanoida Calanoida
+ASV_4   349674  cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Podoplea;Poecilostomatoida;Oncaeidae;Oncaea  Oncaea
+ASV_5   349674  cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bilateria;Protostomia;Ecdysozoa;Panarthropoda;Arthropoda;Mandibulata;Pancrustacea;Crustacea;Multicrustacea;Hexanauplia;Copepoda;Neocopepoda;Podoplea;Poecilostomatoida;Oncaeidae;Oncaea  Oncaea
+....
 '''
 
 
@@ -22,7 +36,7 @@ def call_on_taxonkit(current_query, taxons, data_dir):
     result_line = [current_query]
     try:
         # call on taxonkit. lazier to use os.popen - python-bindings exist but introduce a dependency.
-        res = os.popen(f'echo {" ".join(taxons)} | taxonkit lca --data-dir {data_dir}').read().split()[-1]
+        res = os.popen(f'echo {" ".join(taxons)} | taxonkit lca --data-dir {data_dir} | cut -f 2 | taxonkit lineage --data-dir {data_dir} -n ').read().rstrip()
     except IndexError:
         # in some cases, taxonkit fails because the taxonomy ID is not included. The above [-1] crashes.
         res = 'NA'
@@ -30,7 +44,7 @@ def call_on_taxonkit(current_query, taxons, data_dir):
     print('\t'.join(result_line))
 
 def main():
-    DATA_DIR = '.' # Where taxonkit data is stored.
+    DATA_DIR = '~/.taxonkit/' # Where taxonkit data is stored.
 
     parser = argparse.ArgumentParser(description='Parses blastn output, computes LCA for all queries using taxonkit.')
     parser.add_argument('blastn', metavar='FILE', type=str,
