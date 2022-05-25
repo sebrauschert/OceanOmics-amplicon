@@ -65,6 +65,20 @@ sudo apt-get update
 sudo apt-get install mmv
 ```
 
+### Install `taxonkit`
+
+Following the above conda instructions, we now have a conda environment called `taxonkit`. taxonkit expects the NCBI taxdump in ~/.taxonkit:
+
+```
+mkdir ~/.taxonkit
+cd ~/.taxonkit
+wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
+tar xzvf taxdump.tar.gz
+```
+It's about 500MB in size.
+
+It is possible to extract the data elsewhere and then give taxonkit the path. See the `--data-dir` flag in `computeLCA.py`.
+
 ## How To
 
 ### Bash scripts
@@ -173,6 +187,7 @@ grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentifi
 Then, to make a table of the lineage and hit for each query's LCA:
 
 ```
+conda activate taxonkit
 python computeLCA.py all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv
 ```
 
