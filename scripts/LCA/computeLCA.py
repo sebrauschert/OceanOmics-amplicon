@@ -34,12 +34,10 @@ ASV_5   349674  cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bila
 
 def call_on_taxonkit(current_query, taxons, data_dir):
     result_line = [current_query]
-    try:
-        # call on taxonkit. lazier to use os.popen - python-bindings exist but introduce a dependency.
-        res = os.popen(f'echo {" ".join(taxons)} | taxonkit lca --data-dir {data_dir} | cut -f 2 | taxonkit lineage --data-dir {data_dir} -n ').read().rstrip()
-    except IndexError:
-        # in some cases, taxonkit fails because the taxonomy ID is not included. The above [-1] crashes.
-        res = 'NA'
+    
+    # call on taxonkit. lazier to use os.popen - python-bindings exist but introduce a dependency.
+    res = os.popen(f'echo {" ".join(taxons)} | taxonkit lca --data-dir {data_dir} | cut -f 2 | taxonkit lineage --data-dir {data_dir} -n ').read().rstrip()
+
     result_line.append(res)
     print('\t'.join(result_line))
 
