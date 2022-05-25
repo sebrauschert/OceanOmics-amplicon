@@ -157,11 +157,35 @@ conda activate amplicon
 bash scripts/05-blastn.sh 03-dada2/voyage1_assay1.fa 12 voyage1assay1
 ```
 
+#### Finding the last common ancestor (LCA) for each query ASV
 
-#### 
+Now we try to find the 'best' hit for each query by merging all hits into their LCA species.
+
+First, we filter the blast tabular output:
+
+```
+awk '{if ($7 > 90) print}' all_results.tsv > all_results.90perc.tsv
+grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentified all_results.90perc.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv
+```
+
+Then, to make a table of the lineage and hit for each query's LCA:
+
+```
+python computeLCA.py all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv
+```
+
+Then we can search for fish in these LCAs.
+
+```
+python findFish.py all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
+# give me the number of hits
+wc -l all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
+```
+
 ### `Nextflow`
 
 ## Authors and contributors
 Jessica Pearce  
 Sebastian Rauschert  
 Priscila Goncalves  
+Philipp Bayer
