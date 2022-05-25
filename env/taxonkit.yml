@@ -1,0 +1,7 @@
+name: amplicon
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - taxonkit
