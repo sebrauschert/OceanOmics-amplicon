@@ -37,6 +37,7 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `datalad` environment, to track data and analysis
 - `renv` for a version controlled `R` environment including the `renv` package
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
+- `taxonkit` for taxonomy-related tasks
 
 To create those environments, first install miniconda end then run the following:
 
@@ -44,6 +45,7 @@ To create those environments, first install miniconda end then run the following
 conda env create -f env/datalad_environment.yml
 conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
+conda env create -f env/taxonkit.yml
 ```
 
 There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
@@ -62,6 +64,20 @@ Please install it with:
 sudo apt-get update
 sudo apt-get install mmv
 ```
+
+### Install `taxonkit`
+
+Following the above conda instructions, we now have a conda environment called `taxonkit`. taxonkit expects the NCBI taxdump in ~/.taxonkit:
+
+```
+mkdir ~/.taxonkit
+cd ~/.taxonkit
+wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
+tar xzvf taxdump.tar.gz
+```
+It's about 500MB in size.
+
+It is possible to extract the data elsewhere and then give taxonkit the path. See the `--data-dir` flag in `computeLCA.py`.
 
 ## How To
 
@@ -157,11 +173,36 @@ conda activate amplicon
 bash scripts/05-blastn.sh 03-dada2/voyage1_assay1.fa 12 voyage1assay1
 ```
 
+#### Finding the last common ancestor (LCA) for each query ASV
 
-#### 
+Now we try to find the 'best' hit for each query by merging all hits into their LCA species.
+
+First, we filter the blast tabular output:
+
+```
+awk '{if ($7 > 90) print}' all_results.tsv > all_results.90perc.tsv
+grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentified all_results.90perc.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv
+```
+
+Then, to make a table of the lineage and hit for each query's LCA:
+
+```
+conda activate taxonkit
+python computeLCA.py all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv
+```
+
+Then we can search for fish in these LCAs.
+
+```
+python findFish.py all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
+# give me the number of hits
+wc -l all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
+```
+
 ### `Nextflow`
 
 ## Authors and contributors
 Jessica Pearce  
 Sebastian Rauschert  
 Priscila Goncalves  
+Philipp Bayer
