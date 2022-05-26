@@ -31,16 +31,6 @@ ASV_5   349674  cellular organisms;Eukaryota;Opisthokonta;Metazoa;Eumetazoa;Bila
 ....
 '''
 
-
-def call_on_taxonkit(current_query, taxons, data_dir):
-    result_line = [current_query]
-    
-    # call on taxonkit. lazier to use os.popen - python-bindings exist but introduce a dependency.
-    res = os.popen(f'echo {" ".join(taxons)} | taxonkit lca --data-dir {data_dir} | cut -f 2 | taxonkit lineage --data-dir {data_dir} -n ').read().rstrip()
-
-    result_line.append(res)
-    print('\t'.join(result_line))
-
 def main():
     DATA_DIR = '~/.taxonkit/' # Where taxonkit data is stored.
 
@@ -58,7 +48,9 @@ def main():
     current_query = None
     taxons = None
 
-    with open(args.blastn) as fh:
+    list_of_queries = []
+    with open(args.blastn) as fh, open('TEMP_TAXONS.txt', 'w') as out:
+
         for line in fh:
             ll = line.split()
             query = ll[0]
@@ -70,16 +62,28 @@ def main():
 
             if current_query != query:
                 if taxons:
-                    call_on_taxonkit(current_query, taxons, data_dir)
+                    # write out the taxons to temporary files, removing duplicates
+                    out.write(' '.join(set(taxons)) + '\n')
                 # printed all for the last query, now start collecting for the new query
                 taxons = [taxid]
                 current_query = query
+                list_of_queries.append(current_query)
             else:
                 # current query is same as before, add to list
                 taxons.append(taxid)
 
-    # print for the very last query, too
-    if taxons:
-        call_on_taxonkit(current_query, taxons, data_dir)
+        # print for the very last query, too
+        if taxons:
+            out.write(' '.join(set(taxons)) + '\n')
+
+    all_taxa = os.popen('taxonkit lca TEMP_TAXONS.txt | cut -f 2 | taxonkit lineage -n').read().split('\n')
+    all_taxa = list(filter(None, all_taxa)) # the last line is empty for some reason. Extra linebreak?
+
+    assert len(all_taxa) == len(list_of_queries), f'ERROR: there are {len(list_of_queries)} queries but {len(all_taxa)} taxa in the TEMP_TAXONS.txt file'
+
+    for q, t in zip(list_of_queries, all_taxa):
+        print(f'{q}\t{t}')
+
+    os.remove("TEMP_TAXONS.txt")
 
 main()
