@@ -12,7 +12,7 @@ And very vague hits have been removed, too:
 $ grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentified all_results.90perc.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv
 
 This script also assumes that taxonkit is installed and that the data has been downloaded to the default directory.
-mamba create -n taxonkit taxonkit pytaxonkit -y
+mamba create -n taxonkit taxonkit -y
 conda activate taxonkit
 mkdir ~/.taxonkit
 cd ~/.taxonkit
