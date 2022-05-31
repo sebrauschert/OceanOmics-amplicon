@@ -1,11 +1,10 @@
+library(dada2)
 # Load all Rdata files from step 2 into a list, where the key is the sample name and the value is the output of mergePairs() (`merger`)
 path <- '.'
 files_to_merge <- list.files(path, pattern='*merged.Rdata')
 
-
 mergers <- list()
-for( i in files_to_merge) {
-    f <- files_to_merge[i]
+for( f in files_to_merge) {
     sample <- gsub('merged.Rdata', '', f)
     load(f) # now we have a new object called merger
     mergers[[sample]] <- merger
