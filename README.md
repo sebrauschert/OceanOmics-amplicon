@@ -19,8 +19,9 @@ The scripts contained herein are:
 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
 04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table
 05-blastn.sh                           - to query the NCBI nt and taxa database
-06-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
-07-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
+06--blast-16S-MiFish.py                - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
+07-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
+08-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
 ```
 
 ## Dependencies
@@ -38,6 +39,7 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `renv` for a version controlled `R` environment including the `renv` package
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
 - `taxonkit` for taxonomy-related tasks
+- `pytaxonkit`dependencies for the python script for the  16S and MiFish blast
 
 To create those environments, first install miniconda end then run the following:
 
@@ -46,6 +48,7 @@ conda env create -f env/datalad_environment.yml
 conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
 conda env create -f env/taxonkit.yml
+conda env create -f env/pytaxonkit.yml
 ```
 
 There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
@@ -68,7 +71,7 @@ sudo apt-get install mmv
 ### Install `taxonkit`
 
 Following the above conda instructions, we now have a conda environment called `taxonkit`. taxonkit expects the NCBI taxdump in ~/.taxonkit:
-
+TODO: potentially removing this dependency and use pytaxonkit exclusively?
 ```
 mkdir ~/.taxonkit
 cd ~/.taxonkit
@@ -78,6 +81,11 @@ tar xzvf taxdump.tar.gz
 It's about 500MB in size.
 
 It is possible to extract the data elsewhere and then give taxonkit the path. See the `--data-dir` flag in `computeLCA.py`.
+
+## Databases
+Include or script to download? 16S needs Mike Bunce permission.
+### 16S
+### MiFish
 
 ## How To
 
@@ -171,6 +179,17 @@ This needs to be run for each voyage and each assay, here an example requesting 
 ```
 conda activate amplicon
 bash scripts/05-blastn.sh 03-dada2/voyage1_assay1.fa 12 voyage1assay1
+```
+
+#### Taxonomic assignment via blastn: 16S and MiFish database
+For this we need to activate the `pytaxonkit` environment and execute the script `06-blast-16S-MiFish.py`.
+
+``` 
+conda activate pytaxonkit
+bash scripts/06-blast-16S-MiFish.py \
+          --dada2_file [Path to the dada2 fasta ASV sequence file] \
+          --out_path [path to the folder where the output shall be saved; default current working directory] \
+          --database [either 16S or MiFish]
 ```
 
 #### Finding the last common ancestor (LCA) for each query ASV

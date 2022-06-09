@@ -45,4 +45,3 @@ dependencies:
   - xopen=1.2.1=py37h89c1867_0
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h36c2ea0_1013
-prefix: /DATA/software/miniconda3/envs/amplicon
