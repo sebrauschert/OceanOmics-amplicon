@@ -8,7 +8,7 @@ import pytaxonkit
 Script to run blast with custom 16S and MiFish databases
 
 This script will run blastn on the custom databases and return taxonomic annotations.
-The script required pandas and pytaxonkit in either an activated conda environment or installed on the system via
+The script requires pandas and pytaxonkit in either an activated conda environment or installed on the system via
 e.g. "pip install pandas" and "conda install -c bioconda pytaxonkit".
 
 This pipeline contains the conda environmnent required for this script, which needs to be activated before running it.
@@ -37,9 +37,9 @@ Glimpse at it:
 
 
 Usage:
-     python custom_database_blast --dada2_file [DADA2 fasta file] \
-                                  --out_path [filename or path for output] \
-                                  --database [either '16S' or 'MiFish']
+     python 06-blast-16S-MiFish.py --dada2_file [DADA2 fasta file] \
+                                   --out_path [filename or path for output] \
+                                   --database [either '16S' or 'MiFish']
 '''
 
 #............................................................................
@@ -63,10 +63,10 @@ def main():
                         help='''Select either the 16S or the MiFish database.''')
     args = parser.parse_args()
     dada2_file = args.dada2_file
-    out_file = args.out_path
+    out_path = args.out_path
     database = args.database
 
-    OUT_NAME = out_file + database + '_blast_results.tsv'
+    OUT_NAME = out_path + database + '_blast_results.tsv'
 
 
     # Blast either against the 16S or MiFish database and return formatted file
@@ -170,4 +170,3 @@ def process_blast_output(out_file, database):
 
         print(blast_mifish.head())
 main()
-#subprocess.call(conda_taxonkit, shell = True)
