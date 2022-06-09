@@ -126,7 +126,7 @@ def process_blast_output(out_file, database):
         blast_16 = blast_16[[1, 0, 'taxid', 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
         blast_16.columns = ['ASV', 'Species', 'taxid', 'pident',  'length', 'mismatch', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue','qcovs', 'qcovhsp' ]
 
-        blast_16.to_csv(out_file, sep = '\t')
+        blast_16.to_csv(out_file, sep = '\t', index = False)
         print('')
         print('*******************************************')
         print('Blast against custom 16S database finished!')
