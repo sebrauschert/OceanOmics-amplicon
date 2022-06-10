@@ -15,6 +15,12 @@ This pipeline contains the conda environmnent required for this script, which ne
 
 It further requires a conda environment with blast installed, named 'blast-2.12.0'
 
+Lastly, the taxonkit taxdump file will need to be installed:
+mkdir ~/.taxonkit
+cd ~/.taxonkit
+wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
+tar xzvf taxdump.tar.gz
+
 INPUT:
       - fasta file with ASV sequences from DADA2, containing the ASV IDs and sequences
       - output file name/path
