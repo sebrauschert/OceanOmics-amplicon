@@ -19,9 +19,10 @@ The scripts contained herein are:
 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
 04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table
 05-blastn.sh                           - to query the NCBI nt and taxa database
-06--blast-16S-MiFish.py                - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
-07-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
-08-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
+06-blast-16S-MiFish.py                 - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
+07-custom-lca.py                       - to retrieve the lowest common ancestor for the 16S and MiFish blast results
+08-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
+09-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
 ```
 
 ## Dependencies
