@@ -7,47 +7,50 @@ import pytaxonkit as ptk
 '''
 Lowest common ancestor script for blast results of 16S and MiFish
 
-Filtering done by maximum percent identity and maximum length.
-This script requires the conda environment pytaxonkit to be loaded (conda activate pytaxonkit).
+Filtering done by maximum percent identity and maximum length
 
 INPUT:
      Results from the script 06-blast-16S-MiFish.py (blast results)
 
 RETURNS:
-    Lowest common ancestor table based on percent identity and sequencing length, combined with taxonit lca call.
-    Of note: not all species in the 16S database can be identified with taxid!
+    Lowest common ancestor table based on percent identity and sequencing length, combined with taxonit lca call
 
 Usage:
-    python 07-custom-lca.py  --blast_results [path to output from 16S/MiFish blast results] \
-                             --dada2_asv_table [path to dada2 ASV count table output]
+    python lca_16S_MiFish.py --blast_results [path to output from 16S/MiFish blast results] \
+                             --dada2_asv_table [path to dada2 ASV count table output] \
+                             --output [path to output file]
 
 
 '''
 
 def main():
 
+    OUT_PATH="./"
     parser = argparse.ArgumentParser(description='Lowest Common Ancestor retrieval for blast results')
     parser.add_argument('--blast_results', metavar="BLAST_RES", type=str,
                         help='''Filename and path of blast output'''),
     parser.add_argument('--dada2_asv_table', metavar="DADA2_RES", type=str,
                        help='''Filename and path to dada2 ASV count table''')
+    parser.add_argument('--output', metavar="OUTPUT", type=str, default=OUT_PATH,
+                        help=f'Path to output file defaulting to "{OUT_PATH}".')
 
     args = parser.parse_args()
     blast_results = args.blast_results
     dada2_asv = args.dada2_asv_table
+    output = args.output + "_LCA.csv"
 
     # Read the blast output and the dada2 ASV table
     dat = pd.read_csv(blast_results, sep = '\t')
     dada2 = pd.read_csv(dada2_asv)
 
     filtered_data = filter_pident_length(dat)
-    lca  = assign_lineage(filtered_data)
+    assign_lineage(filtered_data)
 
     # Merge the LCA and the DADA2 results
     print(pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right').head())
     final_lca = pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right')
 
-    final_lca.to_csv('', index = False)
+    final_lca.to_csv(output, index = False)
 
 
 
