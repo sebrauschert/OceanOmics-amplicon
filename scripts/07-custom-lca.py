@@ -16,7 +16,7 @@ RETURNS:
     Lowest common ancestor table based on percent identity and sequencing length, combined with taxonit lca call
 
 Usage:
-    python lca_16S_MiFish.py --blast_results [path to output from 16S/MiFish blast results] \
+    python 07-custom-lca.py --blast_results [path to output from 16S/MiFish blast results] \
                              --dada2_asv_table [path to dada2 ASV count table output] \
                              --output [path to output file]
 
@@ -44,7 +44,7 @@ def main():
     dada2 = pd.read_csv(dada2_asv)
 
     filtered_data = filter_pident_length(dat)
-    assign_lineage(filtered_data)
+    lca = assign_lineage(filtered_data)
 
     # Merge the LCA and the DADA2 results
     print(pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right').head())
