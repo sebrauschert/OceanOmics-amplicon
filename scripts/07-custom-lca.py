@@ -41,7 +41,7 @@ def main():
     dada2 = pd.read_csv(dada2_asv)
 
     filtered_data = filter_pident_length(dat)
-    lca = assign_lineage(filtered_data)
+    lca  wC#wC= assign_lineage(filtered_data)
 
     # Merge the LCA and the DADA2 results
     print(pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right').head())
