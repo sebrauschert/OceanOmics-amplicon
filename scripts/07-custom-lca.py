@@ -18,7 +18,7 @@ RETURNS:
     Of note: not all species in the 16S database can be identified with taxid!
 
 Usage:
-    python lca_16S_MiFish.py --blast_results [path to output from 16S/MiFish blast results] \
+    python 07-custom-lca.py  --blast_results [path to output from 16S/MiFish blast results] \
                              --dada2_asv_table [path to dada2 ASV count table output]
 
 
