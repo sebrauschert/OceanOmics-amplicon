@@ -9,7 +9,7 @@
 library(dada2) 
 library(tidyverse) 
 library(RColorBrewer) 
-library("readr")
+library(readr)
 
 # DADA2 pipeline as function to 
 # enable writing a loop 
@@ -76,12 +76,6 @@ dada2_analysis <- function(voyageID = voyageID,
   trim_len_Rv <- len_primer_Rv - len_barcode_Rv
   trim_len_Fw
   trim_len_Rv
-  
-  ## 16S forward primer = (+8bp index)GACCCTATGGAGCTTTAGAC = 28bp = 20bp trim
-  ## 16S reverse primer = (+8bp index)CGCTGTTATCCCTADRGTAACT = 30bp (should be 29?) = 22bp trim
-  
-  ## MiFish forward primer = (+8bp index)GTCGGTAAAACTCGTGCCAGC = 29bp (should be 30?) = 21bp trim
-  ## MiFish reverse primer = (+8bp index)CATAGTGGGGTATCTAATCCCAGTTTG = 35bp = 27bp trim
   
   # Assigns file names and place filtered files in filtered/sub directory
   filtered_path    <- file.path(paste0(getwd(),"/03-dada2/", voyageID, "/filtered_", voyageID, "_", assay, "/", site))
@@ -243,7 +237,7 @@ dada2_analysis <- function(voyageID = voyageID,
          height = 10,
          width = 12)
 
-  #filter for amplicon length
+  # filter for amplicon length: The 16S and MiFish primers each have a specific range of base pairs
   ### 16S = 178 - 228
   ### MiFish = 163 - 185
   
@@ -393,10 +387,10 @@ dada2_analysis <- function(voyageID = voyageID,
     as_tibble()
   
   asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
+  asv_for_lca$ASV_sequence <- asv_seqs
   write_delim(asv_for_lca, paste0("03-dada2/", voyageID, "/",voyageID, "_lca_",assay,"_", site,"_asv.tsv"), delim = '\t')
   
 }
-
 
 #........................................................................
 # Running DADA2
@@ -406,11 +400,6 @@ assays  = c("16S", "MiFish")
 sites = c("C13_Cl_La", "C20_Cl_La", "Controls", "I11_Imp_La", "I13_Imp_La", "M11_Me_La", "M12_Me_La", 
          "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl", "RS3-S_Imp_Sl")
           
-# Different sites for RS19 and RS21
-## Shared: "C13_Cl_La", "C20_Cl_La", "Controls", "M11_Me_La", "M12_Me_La", "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl"
-## RS19 only: "I11_Imp_La", "I13_Imp_La", "RS3-S_Imp_Sl" (should be in RS21 as well?)
-## RS21 only: "MT_Buoy", "MT_Lag1", "MT_Lag2", "MT_Slope1", "MT_Slope2", "RS_Cl_Buoy_Lag", "RS_Cl_Buoy_out", "RS_Mer_Buoy", "TV_Buoy"
-### Ran script separately for each voyage with different sites - if/else statement doesn't work
 
 # After running the function below, this loop will run the full analysis across
 # all voyages and assays
