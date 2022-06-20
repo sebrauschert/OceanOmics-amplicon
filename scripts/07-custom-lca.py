@@ -47,8 +47,9 @@ def main():
     lca = assign_lineage(filtered_data)
 
     # Merge the LCA and the DADA2 results
-    print(pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right').head())
-    final_lca = pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='right')
+    # We perform a left join, as we are only interested in reteining those ASV entries that have an LCA assigned.
+    print(pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='left').head())
+    final_lca = pd.merge(lca, dada2.set_index('sample_id').transpose().rename_axis('ASV').reset_index(), on='ASV', how='left')
 
     final_lca.to_csv(output, index = False)
 
