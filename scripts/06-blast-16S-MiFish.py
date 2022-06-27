@@ -50,11 +50,11 @@ Usage:
 
 #............................................................................
 # Code to activate conda environments
-CONDA_BLAST    = 'eval "$(conda shell.bash hook)" ; conda activate blast-2.12.0'
+CONDA_BLAST    = 'eval "$(conda shell.bash hook)" ; conda activate blast'
 
 # Locations of 16S and MiFish databases
-DB16S  = "/DATA/sandbox/amplicon_databases/16SDB/Bunce_16S.fasta"
-MIFISH = "/DATA/sandbox/amplicon_databases/MiFishDB/MiFishdb.fasta"
+DB16S  = "/data/tools/databases/16SDB/16S_MB_database.fasta"
+MIFISH = "/data/tools/databases/MiFishDB/MiFishDB.fasta"
 #............................................................................
 
 def main():

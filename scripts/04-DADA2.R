@@ -9,7 +9,7 @@
 library(dada2) 
 library(tidyverse) 
 library(RColorBrewer) 
-library("readr")
+library(readr)
 
 # DADA2 pipeline as function to 
 # enable writing a loop 
@@ -76,12 +76,6 @@ dada2_analysis <- function(voyageID = voyageID,
   trim_len_Rv <- len_primer_Rv - len_barcode_Rv
   trim_len_Fw
   trim_len_Rv
-  
-  ## 16S forward primer = (+8bp index)GACCCTATGGAGCTTTAGAC = 28bp = 20bp trim
-  ## 16S reverse primer = (+8bp index)CGCTGTTATCCCTADRGTAACT = 30bp (should be 29?) = 22bp trim
-  
-  ## MiFish forward primer = (+8bp index)GTCGGTAAAACTCGTGCCAGC = 29bp (should be 30?) = 21bp trim
-  ## MiFish reverse primer = (+8bp index)CATAGTGGGGTATCTAATCCCAGTTTG = 35bp = 27bp trim
   
   # Assigns file names and place filtered files in filtered/sub directory
   filtered_path    <- file.path(paste0(getwd(),"/03-dada2/", voyageID, "/filtered_", voyageID, "_", assay, "/", site))
@@ -203,7 +197,8 @@ dada2_analysis <- function(voyageID = voyageID,
   mergers <- mergePairs(dada_forward, 
                         filtFs, 
                         dada_reverse, 
-                        filtRs, 
+                        filtRs,
+                        minOverlap = 5,
                         verbose=TRUE)
   
   #......................................................................................
@@ -234,7 +229,7 @@ dada2_analysis <- function(voyageID = voyageID,
     geom_histogram(bins = 100, ) +
     ylab('Number of reads') +
     xlab('Sequence length (bp)') +
-    theme(text = element_text(size=20))
+    theme(text = element_text(size=25))
   seq_hist
   
   # Save plot
@@ -243,14 +238,14 @@ dada2_analysis <- function(voyageID = voyageID,
          height = 10,
          width = 12)
 
-  #filter for amplicon length
+  # filter for amplicon length: The 16S and MiFish primers each have a specific range of base pairs
   ### 16S = 178 - 228
   ### MiFish = 163 - 185
   
    if(assay=="MiFish"){
     seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 163:185]
   } else {
-    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 150:228]
+    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 178:228]
   }
   
   # Remove Chimeras
@@ -366,8 +361,6 @@ dada2_analysis <- function(voyageID = voyageID,
   
   #--------------------------------------------------------------------------------------------------------------------------------------------------
   # SAVE RESULTS
-  # Save the final tables and output
-  write_csv(asv_final_table, paste0("03-dada2/", voyageID, "/", voyageID, "_asv_final_table", "_" ,assay,"_", site,".csv"))
   
   # making and writing out a fasta of our final ASV seqs:
   asv_fasta <- c(rbind(asv_headers, asv_seqs))
@@ -381,36 +374,34 @@ dada2_analysis <- function(voyageID = voyageID,
   asv_for_lca <- as.data.frame(t(seq_table_nochim))
   
   # Making sure that we follow the nomenclature for LCA
-  headers_lca <- c('#ID', names(asv_for_lca))
+  headers_lca <- c('ASV', names(asv_for_lca))
   
   # Capture the IDs / sample names
   ID <- rownames(asv_for_lca)
   
   # Execute it all and create the ASV table
   asv_for_lca <- asv_for_lca %>%
-    mutate(`#ID`= ID) %>%
+    mutate(`ASV`= ID) %>%
     select((headers_lca)) %>%
     as_tibble()
   
   asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
-  write_delim(asv_for_lca, paste0("03-dada2/", voyageID, "/",voyageID, "_lca_",assay,"_", site,"_asv.tsv"), delim = '\t')
+  asv_for_lca$ASV_sequence <- asv_seqs
+  write_delim(asv_for_lca, paste0("03-dada2/", voyageID, "/",voyageID, "_asv_final_table_",assay,"_", site,".tsv"), delim = '\t')
   
 }
-
 
 #........................................................................
 # Running DADA2
 
-voyages = "RS19"
+voyages = "ABV4"
 assays  = c("16S", "MiFish")
-sites = c("C13_Cl_La", "C20_Cl_La", "Controls", "I11_Imp_La", "I13_Imp_La", "M11_Me_La", "M12_Me_La", 
-         "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl", "RS3-S_Imp_Sl")
-          
-# Different sites for RS19 and RS21
-## Shared: "C13_Cl_La", "C20_Cl_La", "Controls", "M11_Me_La", "M12_Me_La", "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl"
-## RS19 only: "I11_Imp_La", "I13_Imp_La", "RS3-S_Imp_Sl" (should be in RS21 as well?)
-## RS21 only: "MT_Buoy", "MT_Lag1", "MT_Lag2", "MT_Slope1", "MT_Slope2", "RS_Cl_Buoy_Lag", "RS_Cl_Buoy_out", "RS_Mer_Buoy", "TV_Buoy"
-### Ran script separately for each voyage with different sites - if/else statement doesn't work
+sites = c("AUV01_N_10_Wallabi", "AUV01_Pelsaert", "AUV03_N_40_Wallabi", "AUV03_Pelsaert", "AUV04_N_15_Wallabi", "AUV04_Pelsaert", "AUV06_N_35_Wallabi", 
+          "AUV06_Pelsaert", "C-153_N_40_Easter", "Controls", "D1_Jurien", "D2_Jurien", "D3_Jurien", "D2_GC", "D5_GC", "Deep3_Wallabi", "DeepChannel_Wallabi", 
+          "DeepKelp_Wallabi", "EastWallabi_Wallabi", "E_D1_N_40_Easter", "E_D2_N_40_Easter", "E_S1_N_10_Easter", "E_S2_N_10_Easter", "E_S3_N_10_Easter", 
+          "ES_Easter", "Kelp1_Wallabi", "PW_D01_50_Pelsaert", "P_W_D1_N_40_Pelsaert", "PW_D_40_Pelsaert", "P_W_S_10_Pelsaert", "PW_S_10_Pelsaert", 
+          "S1_GC", "S2_GC", "S3_GC", "S4_GC", "TurtleBay_Wallabi", "WA115_10_Wallabi", "WA115_Pelsaert", "WA176_Pelsaert", "WA177_10_Wallabi", 
+          "WA177_Pelsaert", "WA181_Pelsaert", "WA46_Pelsaert", "WestWallabi_Wallabi")
 
 # After running the function below, this loop will run the full analysis across
 # all voyages and assays
