@@ -52,9 +52,12 @@ echo 'path is:' $(pwd)
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
       01-QC \
-      02-demultiplexed/sample_names \
-      03-dada2/QC_plots \
-      04-taxa \
+      02-demultiplexed/$2/$3 \
+      02-demultiplexed/$2/$4 \
+      03-dada2/$2/QC_plots \
+      03-dada2/$2/tmpfiles \
+      04-taxa/blast_out \
+      04-taxa/LCA_out \
       05-report \
       scripts
 
@@ -62,12 +65,12 @@ mkdir -p 00-raw-data/indices \
 #...............................................................................................
 touch README.md
 
-echo "# step:" >> README.md
-echo "# analyst" >> README.md
-echo "# data locations" >> README.md
-echo "# script used" >> README.md
-echo "# software version" >> README.md
-echo "# problems encountered" >> README.md
+echo "# Step:" >> README.md
+echo "# Analyst:" >> README.md
+echo "# Data locations:" >> README.md
+echo "# Script used:" >> README.md
+echo "# Software version:" >> README.md
+echo "# Problems encountered:" >> README.md
 
 conda deactivate
 
@@ -84,12 +87,12 @@ rm README.md
 # Create a general README for this project
 #...............................................................................................
 touch README.md
-echo "# project" >> README.md
-echo "# analyst" >> README.md
-echo "# overview" >> README.md
+echo "# Project:" >> README.md
+echo "# Analyst:" >> README.md
+echo "# Overview:" >> README.md
 
 
-cp -r ../../OceanOmics-amplicon/scripts .
+cp -r /home/jpearce/data/tools/OceanOmics_pipelines/OceanOmics-amplicon/scripts .
 
 conda activate datalad
 
