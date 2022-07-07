@@ -1,6 +1,10 @@
 #!/bin/bash
-set -u
-set -o pipefail
+#set -u
+#set -o pipefail
+
+# Too avoid too many open files error:
+ulimit -S -n 4096
+
 #..........................................................................................
 
 # Take two command line inputs
@@ -31,7 +35,7 @@ mkdir -p $(pwd)/02-demultiplexed/${voyageID}/${assay}
 #..........................................................................................
 
 echo ${filename}
-cutadapt -j 16 \
+cutadapt -j 100 \
            -e 0.15 \
            --no-indels \
            -g file:${input_directory}/indices/${voyageID}_${assay}_Fw.fa  \
