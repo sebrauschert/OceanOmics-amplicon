@@ -48,6 +48,9 @@ def main():
 
     # Read the blast output and the dada2 ASV table
     dat = pd.read_csv(blast_results, sep = '\t')
+    # Remove those entries where species could not be assigned to taxid
+    dat.drop(dat.index[dat['taxid'].isnull()], inplace=True)
+    dat = dat.reset_index(drop=True)
     dada2 = pd.read_csv(dada2_asv, sep = '\t')
 
     filtered_data = filter_pident_length(dat)
