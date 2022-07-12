@@ -12,14 +12,9 @@ library(RColorBrewer)
 library(readr)
 
 # Define voyages, assays and sites
-voyages = c("RS19", "RS21")
+voyages = c()
 assays = c("16S", "MiFish")
-
-sites_19 = c("C13_Cl_La", "C20_Cl_La", "Controls", "I11_Imp_La", "I13_Imp_La", "M11_Me_La", "M12_Me_La",
-             "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl", "RS3-S_Imp_Sl")
-sites_21 = c("C13_Cl_La", "C20_Cl_La", "Controls", "M11_Me_La", "M12_Me_La",
-             "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl",
-             "MT_Buoy", "MT_Lag1", "MT_Lag2", "MT_Slope1", "MT_Slope2", "RS_Cl_Buoy_Lag", "RS_Cl_Buoy_out", "RS_Mer_Buoy", "TV_Buoy")
+sites = c()
 
 # DADA2 pipeline as function to 
 # enable writing a loop 
@@ -611,7 +606,7 @@ dada2_analysis2 <- function(voyage = voyage,
 
 #........................................................................
 # Running DADA2
-# After running the function below, this loop will run the last section of the analysis analysis across
+# After running the function below, this loop will run the full analysis across
 # all voyages and assays
 for(voyage in voyages){
     
