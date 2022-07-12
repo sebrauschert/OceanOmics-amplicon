@@ -54,9 +54,10 @@ mkdir -p 00-raw-data/indices \
       01-QC \
       02-demultiplexed/$2/$3 \
       02-demultiplexed/$2/$4 \
-      03-dada2/QC_plots \
-      03-dada2/tmpfiles \
-      04-taxa \
+      03-dada2/$2/QC_plots \
+      03-dada2/$2/tmpfiles \
+      04-taxa/blast_out \
+      04-taxa/LCA_out \
       05-report \
       scripts
 
@@ -86,9 +87,9 @@ rm README.md
 # Create a general README for this project
 #...............................................................................................
 touch README.md
-echo "# project" >> README.md
-echo "# analyst" >> README.md
-echo "# overview" >> README.md
+echo "# Project:" >> README.md
+echo "# Analyst:" >> README.md
+echo "# Overview:" >> README.md
 
 
 cp -r /home/jpearce/data/tools/OceanOmics_pipelines/OceanOmics-amplicon/scripts .

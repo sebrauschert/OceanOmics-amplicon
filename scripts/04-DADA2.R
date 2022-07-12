@@ -11,19 +11,24 @@ library(tidyverse)
 library(RColorBrewer) 
 library(readr)
 
+# Define voyages, assays and sites
+voyages = c()
+assays = c("16S", "MiFish")
+sites = c()
+
 # DADA2 pipeline as function to 
 # enable writing a loop 
-dada2_analysis <- function(voyageID = voyageID, 
+dada2_analysis1 <- function(voyage = voyage, 
                            assay = assay, 
                            site = site){
   
   
   # define path
-  path         <- paste0(getwd(),"/02-demultiplexed/", voyageID, "/", assay, "/", site)
+  path         <- paste0(getwd(),"/02-demultiplexed/", voyage, "/", assay, "/", site)
   list.files(path)
   
   # loading index file
-  tags <- read_csv(paste0("00-raw-data/indices/",voyageID,"_indices.csv"))
+  tags <- read_csv(paste0("00-raw-data/indices/",voyage,"_indices.csv"))
   
   # read in fastq files
   fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
@@ -42,14 +47,14 @@ dada2_analysis <- function(voyageID = voyageID,
     qualityprofile_Fs <- plotQualityProfile(fnFs[i])
     
     ggsave(plot = qualityprofile_Fs, 
-           filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_qualityprofile_Fs_", i, "_", assay,"_", site,"_raw.png"), 
+           filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_", site,"_raw.png"), 
            height = 5, 
            width = 7)
     
     qualityprofile_Rs <- plotQualityProfile(fnRs[i])
     
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_qualityprofile_Rs_", i, "_", assay,"_", site, "_raw.png"), height = 5, width = 7)
+           filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay,"_", site, "_raw.png"), height = 5, width = 7)
     
   }
   
@@ -78,7 +83,7 @@ dada2_analysis <- function(voyageID = voyageID,
   trim_len_Rv
   
   # Assigns file names and place filtered files in filtered/sub directory
-  filtered_path    <- file.path(paste0(getwd(),"/03-dada2/", voyageID, "/filtered_", voyageID, "_", assay, "/", site))
+  filtered_path    <- file.path(paste0(getwd(),"/03-dada2/", voyage, "/filtered_", voyage, "_", assay, "/", site))
   filtFs <- file.path(filtered_path,
                       paste0(sample.names_Fs, "_", assay, "_1_trimmed.fq.gz"))
   filtRs <- file.path(filtered_path,
@@ -101,10 +106,11 @@ dada2_analysis <- function(voyageID = voyageID,
                        multithread=TRUE) # On Windows set multithread=FALSE
   
   head(out)
+  
   #......................................................................................
   # CHECKPOINT Save the result
-  saveRDS(out, paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_filterAndTrim_out.rds"))
-  #out <- readRDS(paste0('03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_filterAndTrim_out.rds'))
+  saveRDS(out, paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_filterAndTrim_out.rds"))
+  #out <- readRDS(paste0('03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_filterAndTrim_out.rds'))
   #......................................................................................
   
   
@@ -119,14 +125,14 @@ dada2_analysis <- function(voyageID = voyageID,
     qualityprofile_Fs <- plotQualityProfile(filtFs[i])
                                             
     ggsave(plot = qualityprofile_Fs, 
-           filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_qualityprofile_Fs_", i, "_", assay,"_", site,"_trimmed.png"), 
+           filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_", site,"_trimmed.png"), 
            height = 5, 
            width = 7)
     
     qualityprofile_Rs <- plotQualityProfile(filtRs[i])
     
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_qualityprofile_Rs_", i, "_", assay,"_", site, "_trimmed.png"), height = 5, width = 7)
+           filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay,"_", site, "_trimmed.png"), height = 5, width = 7)
     
   }
   
@@ -138,19 +144,19 @@ dada2_analysis <- function(voyageID = voyageID,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(errors_forward, errors_reverse, file = paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_error_rates.RData"))
-  #load(paste0("03-dada2", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_error_rates.RData"))
+  save(errors_forward, errors_reverse, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
+  #load(paste0("03-dada2", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
   #......................................................................................
   
   # visualise the estimated error rates
   errorsplot_Fs <- plotErrors(errors_forward, nominalQ = TRUE)
   ggsave(plot = errorsplot_Fs, 
-         filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_errorsplot_Fs_", assay,"_", site,".png"), 
+         filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_errorsplot_Fs_", assay,"_", site,".png"), 
          height = 5, 
          width = 7)
   errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
   ggsave(plot = qualityprofile_Rs, 
-         filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_errorsplot_Rs_", assay,"_", site, ".png"), 
+         filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_errorsplot_Rs_", assay,"_", site, ".png"), 
          height = 5, 
          width = 7)
   
@@ -166,8 +172,8 @@ dada2_analysis <- function(voyageID = voyageID,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(derep_forward, derep_reverse, file = paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_dereplicated.RData"))
-  #load(paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay,"_", site, "_dereplicated.RData"))
+  save(derep_forward, derep_reverse, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
+  #load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
   #......................................................................................
   
   # Sample inference
@@ -185,8 +191,8 @@ dada2_analysis <- function(voyageID = voyageID,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(dada_forward, dada_reverse, file = paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site, "_core_sample_inference.RData"))
-  #load(paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site, "_core_sample_inference.RData"))
+  save(dada_forward, dada_reverse, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site, "_core_sample_inference.RData"))
+  #load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site, "_core_sample_inference.RData"))
   #......................................................................................
   
   # inspect the dada-class object
@@ -198,15 +204,15 @@ dada2_analysis <- function(voyageID = voyageID,
                         filtFs, 
                         dada_reverse, 
                         filtRs, 
+                        minOverlap = 5,
                         verbose=TRUE)
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(mergers, file = paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site,"_merged.RData"))
-  # load(paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site,"_merged.RData"))
+  save(mergers, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
+  load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
   #......................................................................................
-  
-  
+   
   # Inspect the merger data.frame from the first sample
   head(mergers[[1]])
   
@@ -214,17 +220,211 @@ dada2_analysis <- function(voyageID = voyageID,
   seq_table <- makeSequenceTable(mergers)
   dim(seq_table)
   
+  #......................................................................................
+  # CHECKPOINT Save the result
+  saveRDS(seq_table, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site,"_seq_tab.rds"))
+  # readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site,"_seq_tab.rds"))
+  #......................................................................................
+}
+
+#......................................................................................
+# Split function as must have sequence table for each site before proceeding to merge them
+# Loop through first function
+for(voyage in voyages){
+  
+  if(voyage == "RS19"){
+    
+    sites <- sites_19
+    
+  }else{
+    
+    sites <- sites_21
+  }
+  
+  for(assay in assays){
+    
+    for(site in sites){
+      
+      dada2_analysis1(voyage, assay, site)
+      
+    }
+  }
+}
+
+#......................................................................................
+## Merge sequence tables from all sites from both voyages to form one for each assay
+
+st.all.16S = list()
+st.all.MiFish = list()
+
+# Loop through voyages, assays and sites
+for(voyage in voyages) {
+  
+  if(voyage == "RS19"){
+    
+    sites <- sites_19
+    
+  }else{
+    
+    sites <- sites_21
+  }
+  
+  for(site in sites){
+    
+    
+    st.all.16S[[paste0(c(voyage, assays[1], site), collapse = '_')]] <- readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[1], "_", site,"_seq_tab.rds"))
+    
+    rownames(st.all.16S[[paste0(c(voyage, assays[1], site), collapse = '_')]]) <- paste0(rownames( st.all.16S[[paste0(c(voyage, assays[1], site), collapse = '_')]]), "_", voyage)
+    
+    st.all.MiFish[[paste0(c(voyage, assays[2], site), collapse = '_')]] <- readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[2], "_", site,"_seq_tab.rds"))
+    
+    rownames(st.all.MiFish[[paste0(c(voyage, assays[2], site), collapse = '_')]]) <- paste0(rownames( st.all.MiFish[[paste0(c(voyage, assays[2], site), collapse = '_')]]), "_", voyage)
+  }
+}
+
+# Use the DADA2 function to add all tables together
+merged_seqtab_16S <- mergeSequenceTables(tables = st.all.16S)
+merged_seqtab_MiFish <- mergeSequenceTables(tables = st.all.MiFish)
+
+# Also merge all previous outputs to match
+# Create table
+out_all_16S <- list()
+out_all_MiFish <- list()
+# Write function
+out_merge_16S <- function(voyage = voyage, 
+                          assay = assay, 
+                          site = site){
+  
+  out_all_16S <- readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[1],"_",site,"_filterAndTrim_out.rds"))
+  out_all_16S <- as.data.frame(out_all_16S)
+}
+
+out_merge_MiFish <- function(voyage = voyage, 
+                             assay = assay, 
+                             site = site){
+  
+  out_all_MiFish <- readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[2],"_",site,"_filterAndTrim_out.rds"))
+  out_all_MiFish <- as.data.frame(out_all_MiFish)
+}
+
+#### Error: unexpected symbol in:
+#### "
+####  out_tab_MiFish <- readRDS(paste0("03-dada2/"t_tab_16S"
+
+# Loop through voyages, assays and sites
+for(voyage in voyages) {
+  
+  if(voyage == "RS19"){
+    
+    sites <- sites_19
+    
+  }else{
+    
+    sites <- sites_21
+  }
+  
+  for(site in sites){
+    
+    out_all_16S[[paste0(c(voyage, assays[1], site), collapse='_')]] <- out_merge_16S(voyage, assays[1], site)
+    out_all_MiFish[[paste0(c(voyage, assays[2], site), collapse='_')]] <- out_merge_MiFish(voyage, assays[2], site)
+  }
+}
+
+# Merge and save outputs
+out_merged_16S <- bind_rows(out_all_16S)
+out_merged_MiFish <- bind_rows(out_all_MiFish)
+
+# Repeat for core DADA2 output
+# Create table
+dada_forward_16S <- list()
+dada_reverse_16S <- list()
+dada_forward_MiFish <- list()
+dada_reverse_MiFish <- list()
+
+# Write function
+dada_merge_16S <- function(voyage = voyage, 
+                           assay = assay, 
+                           site = site){
+  
+  load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[1], "_", site, "_core_sample_inference.RData"))
+  dada_forward_16S <- dada_forward
+  dada_reverse_16S <- dada_reverse
+  
+}
+
+dada_merge_MiFish <- function(voyage = voyage, 
+                              assay = assay, 
+                              site = site){
+  load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[2], "_", site, "_core_sample_inference.RData"))
+  dada_forward_MiFish <- dada_forward
+  dada_reverse_MiFish <- dada_reverse
+  
+}
+
+# Loop through voyages, assays and sites
+for(voyage in voyages) {
+  
+  if(voyage == "RS19"){
+    
+    sites <- sites_19
+    
+  }else{
+    
+    sites <- sites_21
+  }
+  
+  for(site in sites){
+    
+    dada_forward_16S[[length(dada_forward_16S) + 1]] <- dada_merge_16S(voyage, assays[1], site)
+    dada_reverse_16S[[length(dada_reverse_16S) + 1]] <- dada_merge_16S(voyage, assays[1], site)
+    dada_forward_MiFish[[length(dada_forward_MiFish) + 1]] <- dada_merge_MiFish(voyage, assays[2], site)
+    dada_reverse_MiFish[[length(dada_reverse_MiFish) + 1]] <- dada_merge_MiFish(voyage, assays[2], site)
+  }
+}
+
+dada_forward_16S <- unlist(dada_forward_16S,recursive=F)
+dada_reverse_16S <- unlist(dada_reverse_16S,recursive=F)
+dada_forward_MiFish <- unlist(dada_forward_MiFish,recursive=F)
+dada_reverse_MiFish <- unlist(dada_reverse_MiFish,recursive=F)
+
+# Save outputs
+voyage = "RS"
+saveRDS(merged_seqtab_16S, file = paste0("03-dada2/", voyage, "/tmpfiles/",voyage, "_", assays[1], "_seq_tab.rds"))
+saveRDS(merged_seqtab_MiFish, file = paste0("03-dada2/", voyage, "/tmpfiles/",voyage, "_", assays[2], "_seq_tab.rds"))
+saveRDS(out_merged_16S, paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[1],"_filterAndTrim_out.rds"))
+saveRDS(out_merged_MiFish, paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[2],"_filterAndTrim_out.rds"))
+save(dada_forward_16S, dada_reverse_16S, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[1], "_core_sample_inference.RData"))
+save(dada_forward_MiFish, dada_reverse_MiFish, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assays[2], "_core_sample_inference.RData"))
+
+#......................................................................................
+# Finish the dada2 analysis with the merged sequence tables
+
+# Define new merged voyage
+voyages = "RS"
+assay = c("16S", "MiFish")
+voyage = "RS"
+assay = "16S"
+
+dada2_analysis2 <- function(voyage = voyage, 
+                            assay = assay){
+  
+  if(assay=="MiFish"){
+    merged_seq_table <- mergeSequenceTables(tables = st.all.MiFish)
+  } else {
+    merged_seq_table <- mergeSequenceTables(tables = st.all.16S)
+  }
+  
   # inspect distribution of sequence lengths
-  table(nchar(getSequences(seq_table)))
+  table(nchar(getSequences(merged_seq_table)))
   
-  mean(nchar(getSequences(seq_table)))
-  median(nchar(getSequences(seq_table)))
+  mean(nchar(getSequences(merged_seq_table)))
+  median(nchar(getSequences(merged_seq_table)))
   
-  seq_dist <- as.data.frame(nchar(getSequences(seq_table)))
+  seq_dist <- as.data.frame(nchar(getSequences(merged_seq_table)))
   seq_dist
   
   # Create histogram of sequence length distributions
-  seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table)))) +
+  seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(merged_seq_table)))) +
     geom_histogram(bins = 100, ) +
     ylab('Number of reads') +
     xlab('Sequence length (bp)') +
@@ -233,7 +433,7 @@ dada2_analysis <- function(voyageID = voyageID,
   
   # Save plot
   ggsave(plot = seq_hist,
-         filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "_seq_distribution_",assay,"_",site,"_ASVs.png"),
+         filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "_seq_distribution_",assay,"_ASVs.png"),
          height = 10,
          width = 12)
 
@@ -241,10 +441,10 @@ dada2_analysis <- function(voyageID = voyageID,
   ### 16S = 178 - 228
   ### MiFish = 163 - 185
   
-   if(assay=="MiFish"){
-    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 163:185]
+  if(assay=="MiFish"){
+    seq_table2 <- merged_seq_table[,nchar(colnames(merged_seq_table)) %in% 163:185]
   } else {
-    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 150:228]
+    seq_table2 <- merged_seq_table[,nchar(colnames(merged_seq_table)) %in% 178:228]
   }
   
   # Remove Chimeras
@@ -258,13 +458,25 @@ dada2_analysis <- function(voyageID = voyageID,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(seq_table_nochim, file = paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site,"_seq_table_nochim.RData"))
-  # load(paste0("03-dada2/", voyageID, "/tmpfiles/", voyageID, "_", assay, "_", site,"_seq_table_nochim.RData"))
+  save(seq_table_nochim, file = paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_seq_table_nochim.RData"))
+  # load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_", site,"_seq_table_nochim.RData"))
   #......................................................................................
   
   # which percentage of our reads did we keep?
   sum(seq_table_nochim) / sum(seq_table2)
   dim(seq_table_nochim) [2] / dim(seq_table2)[2]
+  
+  # read back in the previous outputs for tracking
+  out <- readRDS(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay,"_filterAndTrim_out.rds"))
+  load(paste0("03-dada2/", voyage, "/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
+  
+  if(assay=="MiFish"){
+    dada_forward <- dada_forward_MiFish
+    dada_reverse <- dada_reverse_MiFish
+  } else {
+    dada_forward <- dada_forward_16S
+    dada_reverse <- dada_reverse_16S
+  }
   
   ## Overview of counts throughout
   get_n <- function(x) sum(getUniques(x))
@@ -278,7 +490,7 @@ dada2_analysis <- function(voyageID = voyageID,
   rownames(track_Fs) <- sample.names_Fs
   head(track_Fs)
   tail(track_Fs)
-  write.table(track_Fs, file = paste0("03-dada2/", voyageID, "/QC_plots/Track_reads_Fw_",assay,"_", site))
+  write.table(track_Fs, file = paste0("03-dada2/", voyage, "/QC_plots/Track_reads_Fw_",assay))
   
   #reverse reads track
   track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(seq_table2), rowSums(seq_table_nochim))  %>%
@@ -289,7 +501,7 @@ dada2_analysis <- function(voyageID = voyageID,
   rownames(track_Rs) <- sample.names_Rs
   head(track_Rs)
   tail(track_Rs)
-  write.table(track_Rs, file = paste0("03-dada2/", voyageID, "/QC_plots/Track_reads_Rs_",assay,"_", site))
+  write.table(track_Rs, file = paste0("03-dada2/", voyage, "/QC_plots/Track_reads_Rs_",assay))
   
   summary(track_Fs$nonchim)
   summary(track_Rs$nonchim)
@@ -329,11 +541,11 @@ dada2_analysis <- function(voyageID = voyageID,
   
   # save plots
   ggsave(plot = track_boxplot_Fw, 
-         filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "Samples_through_stages_Fw_",assay,"_", site,".png"), 
+         filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "Samples_through_stages_Fw_",assay,".png"), 
          height = 10, 
          width = 12)
   ggsave(plot = track_boxplot_Rv, 
-         filename = paste0("03-dada2/", voyageID, "/QC_plots/", voyageID, "Samples_through_stages_Rv_",assay,"_", site,".png"), 
+         filename = paste0("03-dada2/", voyage, "/QC_plots/", voyage, "Samples_through_stages_Rv_",assay,".png"), 
          height = 10, 
          width = 12)
   
@@ -361,11 +573,11 @@ dada2_analysis <- function(voyageID = voyageID,
   #--------------------------------------------------------------------------------------------------------------------------------------------------
   # SAVE RESULTS
   # Save the final tables and output
-  write_csv(asv_final_table, paste0("03-dada2/", voyageID, "/", voyageID, "_asv_final_table", "_" ,assay,"_", site,".csv"))
+  write_csv(asv_final_table, paste0("03-dada2/", voyage, "/", voyage, "_" ,assay,"_asv_table.csv"))
   
   # making and writing out a fasta of our final ASV seqs:
   asv_fasta <- c(rbind(asv_headers, asv_seqs))
-  write(asv_fasta, paste0("03-dada2/", voyageID, "/", voyageID, "_",assay,"_", site,".fa")) ## input for blastn
+  write(asv_fasta, paste0("03-dada2/", voyage, "/", voyage, "_",assay,".fa")) ## input for blastn
   
   # Prepare ASV table for LCA (Lowest Common Ancestor?)
   ## Here we rename the sequences to ASV with an ID, to match the blast results
@@ -375,43 +587,31 @@ dada2_analysis <- function(voyageID = voyageID,
   asv_for_lca <- as.data.frame(t(seq_table_nochim))
   
   # Making sure that we follow the nomenclature for LCA
-  headers_lca <- c('#ID', names(asv_for_lca))
+  headers_lca <- c('ASV', names(asv_for_lca))
   
   # Capture the IDs / sample names
   ID <- rownames(asv_for_lca)
   
   # Execute it all and create the ASV table
   asv_for_lca <- asv_for_lca %>%
-    mutate(`#ID`= ID) %>%
+    mutate(`ASV`= ID) %>%
     select((headers_lca)) %>%
     as_tibble()
   
   asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
   asv_for_lca$ASV_sequence <- asv_seqs
-  write_delim(asv_for_lca, paste0("03-dada2/", voyageID, "/",voyageID, "_lca_",assay,"_", site,"_asv.tsv"), delim = '\t')
+  write_delim(asv_for_lca, paste0("03-dada2/", voyage, "/",voyage, "_asv_final_table_",assay,".tsv"), delim = '\t')
   
 }
 
 #........................................................................
 # Running DADA2
-
-voyages = "RS19"
-assays  = c("16S", "MiFish")
-sites = c("C13_Cl_La", "C20_Cl_La", "Controls", "I11_Imp_La", "I13_Imp_La", "M11_Me_La", "M12_Me_La", 
-         "RS1-1_Me_Sl", "RS1-S_Me_Sl", "RS2-1_Cl_Sl", "RS2-S_Cl_Sl", "RS3-1_Imp_Sl", "RS3-S_Imp_Sl")
-          
-
 # After running the function below, this loop will run the full analysis across
 # all voyages and assays
-
-for(voyage in voyages) {
-  
+for(voyage in voyages){
+    
   for(assay in assays){
     
-    for(site in sites){
-    
-    dada2_analysis(voyage, assay, site)
-      
-    }
+    dada2_analysis2(voyage, assay)
   }
 }
