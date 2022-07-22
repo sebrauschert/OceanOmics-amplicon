@@ -76,7 +76,7 @@ def main():
         if taxons:
             out.write(' '.join(set(taxons)) + '\n')
 
-    all_taxa = os.popen('taxonkit lca TEMP_TAXONS.txt | cut -f 2 | taxonkit lineage -n').read().split('\n')
+    all_taxa = os.popen('taxonkit lca -D TEMP_TAXONS.txt | cut -f 2 | taxonkit lineage -n').read().split('\n')
     all_taxa = list(filter(None, all_taxa)) # the last line is empty for some reason. Extra linebreak?
 
     assert len(all_taxa) == len(list_of_queries), f'ERROR: there are {len(list_of_queries)} queries but {len(all_taxa)} taxa in the TEMP_TAXONS.txt file'
