@@ -39,19 +39,19 @@ option <- opt$option
 # Run the analysis by executing the function above
 if(option == "pooled"){
   
-  source("scripts/functions/dada2_pooled.R")
+  source("scripts/dada/dada2_pooled.R")
   
 }
 
 if(option == "site"){
   
-  source("scripts/functions/dada2_site_spec_error.R")
+  source("scripts/dada/dada2_site_spec_error.R")
   
 }
 
 if(option == "fixed"){
   
-  source("scripts/functions/dada2_site_error_fixed.R")
+  source("scripts/dada/dada2_site_error_fixed.R")
   
   
 }
