@@ -17,12 +17,17 @@ The scripts contained herein are:
 01-demultiplex.sh                      - to demultiplex the amplicon data added to the 00-raw-data folder
 02-rename_demux.sh                     - to rename the demultiplexed reads to their respective sample names; a index to sample name mapping file needs to be created
 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
-04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table
+04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table; this can be executed in pooled, site specific and fixed error modes
 05-blastn.sh                           - to query the NCBI nt and taxa database
 06-blast-16S-MiFish.py                 - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
 07-custom-lca.py                       - to retrieve the lowest common ancestor for the 16S and MiFish blast results
-08-LCA/runAssign_collapsedTaxonomy.py  - a custom script from the eDNAflow pipeline for lowest common ancestor analysis of the taxonomically annotated ASVs
+08-LULU_master.sh                      - LULU is a tool to perform post-clustering curation of DNA amplicon data; also creates the final phyloseq object 
 09-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
+DADA_HPC                               - experimental functions to parallelsie DADA2 for HPC
+dada                                   - three scripts: dada2_pooled.R, dada2_site_error_fixed.R and dada2_site_spec_error.R; called by the 04-DADA2.R code
+LCA                                    - experimental and outdated LCA code
+LULU                                   - all functions required for LULU: 01-get_lineage.sh, 02-merge_lineage_with_LCA.R, 03-lulu_create_match_list.sh, 04-LULU.R and 05-create_phyloseq_object.R
+
 ```
 
 ## Dependencies
@@ -163,13 +168,20 @@ We run the R-script DADA2 to calculate amplicon sequence variants (ASVs).
 
 ```
 conda activate renv
-Rscript scripts/04-DADA2.R
+Rscript scripts/04-DADA2.R --voyage <VOYAGE_ID> \
+                           --assay <ASSAY_ID> \
+                           --option <pooled, site or fixed>
 ```
-This scripts has some hardcoded variable names that need to be changed - notably `voyages` and `assays` at the bottom of the script.
 
-This will run DADA2 for every separately for each voyage and each assay. The final result are quality plots before and after read quality trimming, dereplicated reads, merged paired end reads with no chimeras, and .Rdata files for each step in case on step crashes. The end result is an amplicon sequence variant (ASV) table and a fasta of the ASV sequences. 
+The final result are quality plots before and after read quality trimming, dereplicated reads, merged paired end reads with no chimeras, and .Rdata files for each step in case on step crashes. The end result is an amplicon sequence variant (ASV) table and a fasta of the ASV sequences. 
 
 All results will be in 03-dada2/
+
+#### LULU: post-clustering curation of DNA amplicon data
+
+``` 
+
+```
 
 #### Taxonomic assignment via blastn
 
