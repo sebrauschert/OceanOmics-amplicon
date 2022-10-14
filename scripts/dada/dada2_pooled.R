@@ -379,3 +379,6 @@ dada2_pooled <- function(voyage = voyage,
   
 }
 
+# Run analysis function
+dada2_pooled(voyage,
+             assay)
