@@ -11,12 +11,12 @@
 
 
 # Make sure to not include the unnamed and unknown directories
-excl <- c(grep('unknown', basename(list.dirs(paste0('02-demultiplexed/', voyage,'/', assay), recursive = FALSE))),
-          grep('unnamed', basename(list.dirs(paste0('02-demultiplexed/', voyage,'/', assay), recursive = FALSE))))
+excl <- c(grep('unknown', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))),
+          grep('unnamed', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))))
 
-sites  <- basename(list.dirs(paste0('02-demultiplexed/', voyage,'/', assay), recursive = FALSE))[-excl]
+sites  <- basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))[-excl]
 
-path   <- paste0(getwd(),"/02-demultiplexed/",voyage,'/', assay)
+path   <- paste0(getwd(),"/02-demultiplexed/", assay)
 
 #=========================================================================================================
 # GENERATE FIXED ERROR RATE
@@ -122,7 +122,7 @@ errors_forward <- learnErrors(filtFs, multithread = 100)
 errors_reverse <- learnErrors(filtRs, multithread = 100)
 
 # Save the error rates to be loaded again for the site specific analysis
-save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay, "_error_rates.RData"))
+save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay, "_fixed_error_rates.RData"))
 
 # visualize the estimated error rates
 errorsplot_Fs <- plotErrors(errors_forward, nominalQ = TRUE)
@@ -147,7 +147,7 @@ dada2_analysis1 <- function(voyage = voyage,
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
-  path         <- paste0(getwd(),"/02-demultiplexed/",voyage, '/', assay, "/", site)
+  path         <- paste0(getwd(),"/02-demultiplexed/", assay, "/", site)
   list.files(path)
   
   # loading index file
@@ -254,7 +254,7 @@ dada2_analysis1 <- function(voyage = voyage,
   
   #......................................................................................
   # CHECKPOINT load the error model
-  load(paste0("03-dada2/errorModel/", voyage, "_", assay, "_error_rates.RData"))
+  load(paste0("03-dada2/errorModel/", voyage, "_", assay, "_fixed_error_rates.RData"))
   #......................................................................................
   
   
@@ -454,7 +454,7 @@ sample_names = list()
 get_samples_names <- function(voyage = voyage,
                               assay = assay,
                               site = site){
-  path         <- paste0(getwd(),"/02-demultiplexed/",voyage, "/", assay, "/", site,"/")
+  path         <- paste0(getwd(),"/02-demultiplexed/", assay, "/", site,"/")
   list.files(path)
   fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
   sample_names <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".1.fq.gz")))))
@@ -586,3 +586,9 @@ asv_for_lca <- asv_for_lca %>%
 asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
 asv_for_lca$ASV_sequence <- asv_seqs
 write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_final_table_",assay,".tsv"), delim = '\t')
+
+lca_input <- asvs_for_lca %>%
+  rename('#ID' = ASV) %>%
+  select(-ASV_sequence)
+write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
+

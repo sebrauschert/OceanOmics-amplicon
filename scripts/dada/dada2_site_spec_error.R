@@ -9,8 +9,13 @@
 # DADA2 pipeline as function
 # SITE SPECIFIC ERROR ANALYSIS 
 
-path         <- paste0(getwd(),"/02-demultiplexed/", assay)
-sites <- list.files(path)
+# Make sure to not include the unnamed and unknown directories
+excl <- c(grep('unknown', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))),
+          grep('unnamed', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))))
+
+sites  <- basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))[-excl]
+
+path   <- paste0(getwd(),"/02-demultiplexed/", assay)
 
 # DADA2 pipeline as function to 
 # enable writing a loop 
@@ -131,7 +136,7 @@ dada2_analysis1 <- function(voyage = voyage,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(errors_forward, errors_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
+  save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_", site, "_error_rates.RData"))
   #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
   #......................................................................................
   
@@ -472,3 +477,9 @@ asv_for_lca <- asv_for_lca %>%
 asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
 asv_for_lca$ASV_sequence <- asv_seqs
 write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_final_table_",assay,".tsv"), delim = '\t')
+
+lca_input <- asvs_for_lca %>%
+  rename('#ID' = ASV) %>%
+  select(-ASV_sequence)
+write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
+
