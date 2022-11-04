@@ -52,13 +52,15 @@ echo 'path is:' $(pwd)
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
       01-QC \
-      02-demultiplexed/$2/$3 \
-      02-demultiplexed/$2/$4 \
-      03-dada2/$2/QC_plots \
-      03-dada2/$2/tmpfiles \
+      02-demultiplexed/$2 \
+      02-demultiplexed/$3 \
+      03-dada2/QC_plots \
+      03-dada2/tmpfiles \
+      03-dada2/errorModel \
       04-taxa/blast_out \
       04-taxa/LCA_out \
-      05-report \
+      05-LULU \
+      06-report \
       scripts
 
 # Place a README.md in every folder
@@ -78,7 +80,8 @@ parallel cp README.md ::: 01-QC \
       02-demultiplexed \
       03-dada2 \
       04-taxa \
-      05-report
+      05-LULU \
+      06-report
 
 # Remove the readme file from the main folder structure
 #...............................................................................................
