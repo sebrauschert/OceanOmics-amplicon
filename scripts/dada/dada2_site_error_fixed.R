@@ -435,6 +435,23 @@ seq_table_nochim <- removeBimeraDenovo(seq_table2,
 
 dim(seq_table_nochim)
 
+seq_dist <- as.data.frame(nchar(getSequences(seq_table_nochim)))
+seq_dist
+
+# Create histogram of sequence length distributions
+seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table_nochim)))) +
+  geom_histogram(bins = 100, ) +
+  ylab('Number of reads') +
+  xlab('Sequence length (bp)') +
+  theme(text = element_text(size=20))
+seq_hist
+
+# Save plot
+ggsave(plot = seq_hist,
+       filename = paste0("03-dada2/QC_plots/", voyage, "_ASV_seq_distribution_noChim_",assay,".png"),
+       height = 10,
+       width = 12)
+
 #......................................................................................
 # CHECKPOINT Save the result
 save(seq_table_nochim, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_seq_table_nochim.RData"))
@@ -470,26 +487,26 @@ sample_names <- unlist(sample_names, use.names = F)
 get_n <- function(x) sum(getUniques(x))
 
 #forward reads track
-track_Fs <- cbind(out, sapply(dada_forward, get_n), rowSums(seq_table2), rowSums(seq_table_nochim))  %>%
+track_Fs <- cbind(out, sapply(dada_forward, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
   as.data.frame() %>%
   mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-
 colnames(track_Fs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
 rownames(track_Fs) <- sample_names
+track_Fs <- rownames_to_column(track_Fs, var = "Samples")
 head(track_Fs)
 tail(track_Fs)
-write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
+write_tsv(track_Fs, file = paste0("03-dada2/ovl0/QC_plots/Track_reads_Fw_",voyage, "_", assay, ".tsv"))
 
 #reverse reads track
-track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(seq_table2), rowSums(seq_table_nochim))  %>%
+track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
   as.data.frame() %>%
   mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-
 colnames(track_Rs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
 rownames(track_Rs) <- sample_names
+track_Rs <- rownames_to_column(track_Rs, var = "Samples")
 head(track_Rs)
 tail(track_Rs)
-write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
+write_tsv(track_Rs, file = paste0("03-dada2/ovl0/QC_plots/Track_reads_Rs_",voyage, "_", assay, ".tsv"))
 
 summary(track_Fs$nonchim)
 summary(track_Rs$nonchim)

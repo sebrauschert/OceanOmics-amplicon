@@ -16,7 +16,7 @@ then
 
 for assay in ${@:3}
   do
-  bash scripts/run_blastnt.sh ${voyage} ${assay}
+  bash scripts/blast/run_blastnt.sh ${voyage} ${assay}
   done
 
 fi
@@ -30,7 +30,7 @@ conda activate pytaxonkit
 
 for assay in ${@:3}
   do
-  python scripts/blast-16S-MiFish.py \
+  python scripts/blast/blast-16S-MiFish.py \
          --dada2_file 04-LULU/LULU_curated_fasta_${voyage}_${assay}.fa \
          --out_path 05-taxa/blast_out/${voyage}_ \
          --database ${assay}
