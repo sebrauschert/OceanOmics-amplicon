@@ -50,7 +50,7 @@ Usage:
 
 #............................................................................
 # Code to activate conda environments
-CONDA_BLAST    = 'eval "$(conda shell.bash hook)" ; conda activate blast'
+CONDA_BLAST    = 'eval "$(conda shell.bash hook)" ; conda activate blast-2.12.0'
 
 # Locations of 16S and MiFish databases
 DB16S  = "/data/tools/databases/16SDB/16S_MB_database.fasta"
@@ -104,11 +104,11 @@ def blastn(dada2_file, out_file, database):
     out_file (string) : name and path for output file
     '''
     if database == '16S':
-        blast_command = 'blastn -db ' + DB16S + ' -query ' + dada2_file + ' -outfmt "6 stitle qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue itscore qcovs qcovhsp" -num_threads 200 > ' + out_file
+        blast_command = 'blastn -db ' + DB16S + ' -query ' + dada2_file + ' -outfmt "6 qseqid sseqid staxids stitle scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp" -num_threads 200 > ' + out_file
         subprocess.call(CONDA_BLAST + ';' + blast_command, shell = True)
 
     else:
-        blast_command = 'blastn -db ' + MIFISH + ' -query ' + dada2_file + ' -outfmt "6 stitle qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue itscore qcovs qcovhsp" -num_threads 200 > ' + out_file
+        blast_command = 'blastn -db ' + MIFISH + ' -query ' + dada2_file + ' -outfmt "6 qseqid sseqid staxids stitle scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp" -num_threads 200 > ' + out_file
         subprocess.call(CONDA_BLAST + ';' + blast_command, shell = True)
 
 
@@ -127,11 +127,10 @@ def process_blast_output(out_file, database):
     if database == '16S':
 
         blast_16 = pd.read_csv(out_file, sep = '\t', header = None)
-        blast_16[blast_16.columns[0]] = blast_16[blast_16.columns[0]].str.split(',').str[0].values
-        blast_16['taxid'] = pytaxonkit.name2taxid(blast_16[blast_16.columns[0]])['TaxID']
-        blast_16 = blast_16[[1, 0, 'taxid', 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
-        blast_16.columns = ['ASV', 'Species', 'taxid', 'pident',  'length', 'mismatch', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue','qcovs', 'qcovhsp' ]
-
+        blast_16[blast_16.columns[3]] = blast_16[blast_16.columns[3]].str.split(',').str[0].values
+        blast_16['taxid'] = pytaxonkit.name2taxid(blast_16[blast_16.columns[3]])['TaxID']
+        blast_16 = blast_16[[0, 1, 'taxid', 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]]
+        blast_16.columns = ['ASV', 'sseqid', 'taxid', 'Species',  'scomnames', 'sskingdoms', 'pident', 'length', 'qlen', 'slen', 'mismatch', 'gapopen', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore', 'qcovs', '20']
         blast_16.to_csv(out_file, sep = '\t', index = False)
         print('')
         print('*******************************************')
@@ -148,7 +147,7 @@ def process_blast_output(out_file, database):
         taxa_list = []
         blast_mifish = pd.read_csv(out_file, sep = '\t', header = None)
 
-        for hit in blast_mifish[blast_mifish.columns[0]]:
+        for hit in blast_mifish[blast_mifish.columns[3]]:
 
             if hit.startswith('gi'):
                 tax = hit.split('|')[6].strip()
@@ -161,9 +160,9 @@ def process_blast_output(out_file, database):
 
         blast_mifish['taxa'] = taxa_list
         blast_mifish['taxid'] = pytaxonkit.name2taxid(blast_mifish[blast_mifish.columns[len(blast_mifish.columns)-1]])['TaxID']
-
-        blast_mifish = blast_mifish[[1, 'taxa', 'taxid', 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
-        blast_mifish.columns = ['ASV', 'Species', 'taxid', 'pident',  'length', 'mismatch', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue','qcovs', 'qcovhsp' ]
+        
+        blast_mifish = blast_mifish[[0, 1, 'taxid', 'taxa', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]]
+        blast_mifish.columns = ['ASV', 'sseqid', 'taxid', 'Species',  'scomnames', 'sskingdoms', 'pident', 'length', 'qlen', 'slen', 'mismatch', 'gapopen', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore', 'qcovs', '20']
         blast_mifish.to_csv(out_file, sep = '\t', index = False)
 
         print('')

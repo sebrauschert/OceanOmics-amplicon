@@ -13,7 +13,7 @@ dada2_pooled <- function(voyage = voyage,
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
-  path         <- paste0(getwd(),"/02-demultiplexed/",voyage,"/", assay)
+  path         <- paste0(getwd(),"/02-demultiplexed/", assay)
   list.files(path)
   
   # loading index file
@@ -124,7 +124,7 @@ dada2_pooled <- function(voyage = voyage,
   
   #......................................................................................
   # CHECKPOINT Save the result
-  save(errors_forward, errors_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_error_rates.RData"))
+  save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_pooled_error_rates.RData"))
   #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
   #......................................................................................
   
@@ -376,6 +376,11 @@ dada2_pooled <- function(voyage = voyage,
   asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
   asv_for_lca$ASV_sequence <- asv_seqs
   write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_final_table_",assay,".tsv"), delim = '\t')
+  
+  lca_input <- asvs_for_lca %>%
+    rename('#ID' = ASV) %>%
+    select(-ASV_sequence)
+  write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
   
 }
 
