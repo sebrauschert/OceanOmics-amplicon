@@ -54,7 +54,7 @@ meta$`Sample ID` <- NULL
 
 # Prepare the taxa data
 taxa %>%
-  select(ASV, domain, phylum, class, order, family, genus, species) -> taxa
+  select(ASV, domain, phylum, class, order, family, genus, species, Contam) -> taxa
 taxa           <- as.data.frame(taxa)
 rownames(taxa) <- taxa$ASV
 taxa$ASV       <- NULL
@@ -63,7 +63,7 @@ taxa           <- as.matrix(taxa)
 # Prepare otu data
 otu           <- as.data.frame(otu)
 rownames(otu) <- otu$ASV
-otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')] <- list(NULL)
+otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'Contam')] <- list(NULL)
 
 # Create the phyloseq object
 OTU = otu_table(otu, taxa_are_rows = TRUE)
@@ -98,7 +98,7 @@ if(option == "custom"){
   
   # Prepare the taxa data
   taxa %>%
-    select(ASV, domain, phylum, class, order, family, genus, species) -> taxa
+    select(ASV, domain, phylum, class, order, family, genus, species, Contam) -> taxa
   taxa           <- as.data.frame(taxa)
   rownames(taxa) <- taxa$ASV
   taxa$ASV       <- NULL
@@ -107,7 +107,7 @@ if(option == "custom"){
   # Prepare otu data
   otu           <- as.data.frame(otu)
   rownames(otu) <- otu$ASV
-  otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')] <- list(NULL)
+  otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'Contam')] <- list(NULL)
   
   # Create the phyloseq object
   OTU = otu_table(otu, taxa_are_rows = TRUE)
