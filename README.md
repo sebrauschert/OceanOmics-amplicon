@@ -46,6 +46,7 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
 - `taxonkit` for taxonomy-related tasks
 - `pytaxonkit`dependencies for the python script for the  16S and MiFish blast
+-  `blastn` taxonomic annotation of ASVs
 
 To create those environments, first install miniconda end then run the following:
 
@@ -55,6 +56,7 @@ conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
 conda env create -f env/taxonkit.yml
 conda env create -f env/pytaxonkit.yml
+conda env create -f env/blast-2.12.0.yml
 ```
 
 There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
@@ -90,8 +92,36 @@ It is possible to extract the data elsewhere and then give taxonkit the path. Se
 
 ## Databases
 Include or script to download? 16S needs Mike Bunce permission.
+
+### NCBI nt
+To download the NCBI nt database, we first need to set up the blast conda environment, then download the nt database and the taxdb:
+
+``` shell
+conda activate blast-2.12.0
+mkdir ncbi-nt
+cd ncbi-nt
+
+# nt database
+update_blastdb.pl --decompress nt 
+
+# download taxdb in the same folder (ncbi-nt)
+wget ftp://ftp.ncbi.nlm.gov/blast/db/taxdb.tar.gz
+
+# Extract
+tar xzvf taxdb.tar.gz
+```
+
 ### 16S
 ### MiFish
+
+``` shell
+mkdir MiFishDB
+cd MiFishDB
+wget http://mitofish.aori.u-tokyo.ac.jp/files/mitogenomes.zip
+unzip mitogenomes.zip
+rm *genes.fa
+cat *.fa > MiFishDB.fasta
+```
 
 ## How To
 
