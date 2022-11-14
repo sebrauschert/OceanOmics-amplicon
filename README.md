@@ -18,16 +18,20 @@ The scripts contained herein are:
 02-rename_demux.sh                     - to rename the demultiplexed reads to their respective sample names; a index to sample name mapping file needs to be created
 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
 04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table; this can be executed in pooled, site specific and fixed error modes
-05-blastn.sh                           - to query the NCBI nt and taxa database
-06-blast-16S-MiFish.py                 - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
-07-custom-lca.py                       - to retrieve the lowest common ancestor for the 16S and MiFish blast results
-08-LULU_master.sh                      - LULU is a tool to perform post-clustering curation of DNA amplicon data; also creates the final phyloseq object 
-09-ecology_plots.R                     - phyloseq based ecology plots for initial alpha and beta diversity 
-DADA_HPC                               - experimental functions to parallelsie DADA2 for HPC
-dada                                   - three scripts: dada2_pooled.R, dada2_site_error_fixed.R and dada2_site_spec_error.R; called by the 04-DADA2.R code
-LCA                                    - experimental and outdated LCA code
-LULU                                   - all functions required for LULU: 01-get_lineage.sh, 02-merge_lineage_with_LCA.R, 03-lulu_create_match_list.sh, 04-LULU.R and 05-create_phyloseq_object.R
+05-run_LULU.sh                         - LULU is a tool to perform post-clustering curation of DNA amplicon data; also creates the final phyloseq object 
+06-run_blast.sh                        - to query the NCBI nt and taxa database
+07-run_LCA.sh                          - to retrieve the lowest common ancestor for the 16S and MiFish blast results
+08-Decontam.R                          - sample decontamination; currently not automated
+09-create_phyloseq_object.R            - create the phyloseq R package object for ease of analysis
+LCA_filter_nt_only.R                   - filter blast nt results 
+Reorganise.sh                          - for site specific analysis: organise samples by site
+blast-16S-MiFish.py                    - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
+ecology_plots.R                        - phyloseq based ecology plots for initial alpha and beta diversity 
+run_blastnt.sh                         - blast against NCBI nt database
 
+LULU                                   - all functions required for LULU: 01-get_lineage.sh, 02-merge_lineage_with_LCA.R, 03-lulu_create_match_list.sh, 04-LULU.R and 05-create_phyloseq_object.R
+dada                                   - three scripts: dada2_pooled.R, dada2_site_error_fixed.R and dada2_site_spec_error.R; called by the 04-DADA2.R code
+LCA                                    - LCA scripts and dependencies from eDNAflow pipeline 
 ```
 
 ## Dependencies
@@ -142,19 +146,21 @@ This will create a new folder containing a datalad project. It will be named myF
 The folder contains subfolders for all subsequent steps of the pipeline:
 
 ```
-
 .
-├── 00-raw-data
-│   └── indices
-├── 01-QC
-├── 02-demultiplexed
-│   └── sample_names
-├── 03-dada2
-│   └── QC_plots
-├── 04-taxa
-├── 05-report
-└── scripts
-    └── LCA
+|--- 00-raw-data
+|    |--- indices
+|--- 01-QC
+|--- 02-demultiplexed
+|--- 03-dada2
+|    |--- QC_plots
+|    |--- tmpfiles 
+|    |--- errorModel
+|--- 04-taxa
+|    |--- blast_out
+|    |---LCA_out
+|--- 05-LULU
+|--- 06-report
+|--- scripts
 ```
 
 The pipeline expects fastq of your amplicon sequencing data in the 00-raw-data/ folder. The files should be named `*R1*fastq.gz` and `*R2*.fastq.gz`.
