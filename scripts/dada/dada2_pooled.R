@@ -13,7 +13,7 @@ dada2_pooled <- function(voyage = voyage,
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
-  path         <- paste0(getwd(),"/02-demultiplexed/", assay)
+  path         <- paste0(getwd(),"/01-demultiplexed/", assay)
   list.files(path)
   
   # loading index file
@@ -160,13 +160,13 @@ dada2_pooled <- function(voyage = voyage,
   dada_forward <- dada(derep_forward, 
                        err = errors_forward, 
                        pool = TRUE, 
-                       multithread = TRUE, 
+                       multithread = 100, 
                        verbose = TRUE)
   
   dada_reverse <- dada(derep_reverse, 
                        err = errors_reverse, 
                        pool = TRUE, 
-                       multithread = TRUE, 
+                       multithread = 100, 
                        verbose = TRUE)
   
   #......................................................................................
@@ -237,7 +237,7 @@ dada2_pooled <- function(voyage = voyage,
   # if pooling for denoising, should also pool for chimera removal
   seq_table_nochim <- removeBimeraDenovo(seq_table2, 
                                          method = "pooled", 
-                                         multithread = TRUE, 
+                                         multithread = 100, 
                                          verbose = TRUE)
   
   dim(seq_table_nochim)
@@ -247,7 +247,7 @@ dada2_pooled <- function(voyage = voyage,
   
   # Create histogram of sequence length distributions
   seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table_nochim)))) +
-    geom_histogram(bins = 100, ) +
+    geom_histogram(bins = 50, ) +
     ylab('Number of reads') +
     xlab('Sequence length (bp)') +
     theme(text = element_text(size=20))
@@ -283,22 +283,22 @@ dada2_pooled <- function(voyage = voyage,
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
   colnames(track_Fs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
-  rownames(track_Fs) <- sample_names
+  rownames(track_Fs) <- sample.names_Fs
   track_Fs <- rownames_to_column(track_Fs, var = "Samples")
   head(track_Fs)
   tail(track_Fs)
-  write_tsv(track_Fs, file = paste0("03-dada2/ovl0/QC_plots/Track_reads_Fw_",voyage, "_", assay, ".tsv"))
+  write_tsv(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",voyage, "_", assay, ".tsv"))
   
   #reverse reads track
   track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
   colnames(track_Rs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
-  rownames(track_Rs) <- sample_names
+  rownames(track_Rs) <- sample.names_Rs
   track_Rs <- rownames_to_column(track_Rs, var = "Samples")
   head(track_Rs)
   tail(track_Rs)
-  write_tsv(track_Rs, file = paste0("03-dada2/ovl0/QC_plots/Track_reads_Rs_",voyage, "_", assay, ".tsv"))
+  write_tsv(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",voyage, "_", assay, ".tsv"))
   
   
   summary(track_Fs$nonchim)
@@ -357,9 +357,9 @@ dada2_pooled <- function(voyage = voyage,
     asv_headers[i] <- paste(">ASV", i, sep="_")
   }
   
-  asv_final_table           <- seq_table_nochim
+  asv_final_table <- seq_table_nochim
   colnames(asv_final_table) <- asv_headers
-  IDs                       <- rownames(asv_final_table)
+  IDs <- rownames(asv_final_table)
   
   as_tibble(asv_final_table) %>%
     mutate(sample_id = IDs) %>%
@@ -397,7 +397,7 @@ dada2_pooled <- function(voyage = voyage,
   asv_for_lca$ASV_sequence <- asv_seqs
   write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_final_table_",assay,".tsv"), delim = '\t')
   
-  lca_input <- asvs_for_lca %>%
+  lca_input <- asv_for_lca %>%
     rename('#ID' = ASV) %>%
     select(-ASV_sequence)
   write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
