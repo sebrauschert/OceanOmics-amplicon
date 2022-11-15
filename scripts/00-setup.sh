@@ -96,7 +96,9 @@ echo "# Overview:" >> README.md
 
 
 # Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
-#cp -r /home/jpearce/data/tools/OceanOmics_pipelines/OceanOmics-amplicon/scripts .
+# get current folder
+folder=`dirname -- "${BASH_SOURCE[0]}"`
+cp -r ${folder} .
 
 conda activate datalad
 
