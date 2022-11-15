@@ -95,7 +95,8 @@ echo "# Analyst:" >> README.md
 echo "# Overview:" >> README.md
 
 
-cp -r /home/jpearce/data/tools/OceanOmics_pipelines/OceanOmics-amplicon/scripts .
+# Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
+#cp -r /home/jpearce/data/tools/OceanOmics_pipelines/OceanOmics-amplicon/scripts .
 
 conda activate datalad
 
