@@ -20,9 +20,9 @@ echo
 for assay in ${@:2} 
     do
     
-echo ${ROOT_DIR}/02-demultiplexed/${assay}/
+echo ${ROOT_DIR}/01-demultiplexed/${assay}/
 
     # Create stats and save to file
-    seqkit stats -j 50 -b ${ROOT_DIR}/02-demultiplexed/${assay}/*.fq.gz -a > 01-QC/Sample_statistics_${voyage}_${assay}.txt
+    seqkit stats -j 50 -b ${ROOT_DIR}/01-demultiplexed/${assay}/*.fq.gz -a > 02-QC/Sample_statistics_${voyage}_${assay}.txt
  
 done

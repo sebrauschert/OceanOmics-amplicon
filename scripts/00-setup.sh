@@ -51,9 +51,9 @@ echo 'path is:' $(pwd)
 # Set up the directory structure
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
-      01-QC \
-      02-demultiplexed/$2 \
-      02-demultiplexed/$3 \
+      01-demultiplexed/$2 \
+      01-demultiplexed/$3 \
+      02-QC \
       03-dada2/QC_plots \
       03-dada2/tmpfiles \
       03-dada2/errorModel \
@@ -76,8 +76,8 @@ echo "# Problems encountered:" >> README.md
 
 conda deactivate
 
-parallel cp README.md ::: 01-QC \
-      02-demultiplexed \
+parallel cp README.md ::: 02-QC \
+      01-demultiplexed \
       03-dada2 \
       04-taxa \
       05-LULU \

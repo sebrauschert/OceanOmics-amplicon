@@ -18,12 +18,12 @@ conda activate amplicon
 # This script used cutadapt v3.2
 echo De-multiplexing
 input_directory="$(pwd)/00-raw-data"
-output_folder="$(pwd)/02-demultiplexed/${assay}"
+output_folder="$(pwd)/01-demultiplexed/${assay}"
 read1=$(ls $input_directory/*${assay}*R1*fastq.gz* | grep -v 'Undetermined*')
 read2=$(ls $input_directory/*${assay}*R2*fastq.gz* | grep -v 'Undetermined*')
 
 # Create the output folder, if it does not already exist
-mkdir -p $(pwd)/02-demultiplexed/${assay}
+mkdir -p $(pwd)/01-demultiplexed/${assay}
 
 #..........................................................................................
 # | The -g and -G option specify that we are dealing with combinatorial adapters.

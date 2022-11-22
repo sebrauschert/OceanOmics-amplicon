@@ -18,7 +18,7 @@ echo
 for assay in ${@:2} 
     do
     
-    cd ${ROOT_DIR}/02-demultiplexed/${assay}
+    cd ${ROOT_DIR}/01-demultiplexed/${assay}
     echo $(pwd)
     
     # Here we reference the rename pattern files in the raw data folder, which contains the information that maps the 
