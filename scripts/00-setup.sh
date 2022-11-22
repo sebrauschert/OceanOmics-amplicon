@@ -3,16 +3,6 @@ set -e
 set -o pipefail # see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # set -u does not work well with SLURM, conda, or HPC module systems IME
 
-# Source conda so we can use it with environments
-#...............................................................................................
-eval "$(conda shell.bash hook)"
-
-# 1.) Create the directory structure; for this we require the datalad software to be installed 
-# https://www.datalad.org/
-#...............................................................................................
-
-conda activate datalad
-
 # Create a new directory based on input
 #...............................................................................................
 mkdir $(basename $1)_Amplicon_$(whoami)
@@ -23,24 +13,6 @@ cd $(basename $1)_Amplicon_$(whoami)
 echo 'Preparing data repository...'
 echo ''
 
-datalad create .
-
-# And finally, add the necessary lines to the .gitattributes that we need
-#...............................................................................................
-echo -en '\n***.org annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.sh annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.txt annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.py annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.ipynb annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.R annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.Rmd annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.md annex.largefiles=nothing' >> .gitattributes
-echo -en '\n** annex.largefiles(largerthan=200kb)' >> .gitattributes
-
-# We need to save the changes now
-#...............................................................................................   
-datalad save -m "Appended .gitattributes to not track text files"
-    
 # Finished
 echo ''
 echo ''
@@ -74,7 +46,6 @@ echo "# Script used:" >> README.md
 echo "# Software version:" >> README.md
 echo "# Problems encountered:" >> README.md
 
-conda deactivate
 
 parallel cp README.md ::: 02-QC \
       01-demultiplexed \
@@ -97,12 +68,7 @@ echo "# Overview:" >> README.md
 
 # Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
 # get current folder
-folder=`dirname -- "${BASH_SOURCE[0]}"`
-cp -r ${folder} .
-
-conda activate datalad
-
-datalad save -m "Analysis repo setup"
+cp -r ../OceanOmics-amplicon/scripts/* scripts
 
 # Finished
 #...............................................................................................
