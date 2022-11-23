@@ -3,12 +3,33 @@ set -e
 set -o pipefail # see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # set -u does not work well with SLURM, conda, or HPC module systems IME
 
+# USAGE:
+# bash 00-setup.sh -v <project/voyage ID>
+
+projectID=
+
+usage()
+{
+          printf "Usage: $0 -p <projectID>\t<string>\n\n";
+          exit 1;
+}
+while getopts p: flag
+do
+
+        case "${flag}" in
+            p) projectID=${OPTARG};;
+            *) usage;;
+        esac
+done
+if [ "${projectID}" == ""  ]; then usage; fi
+
+
 # Create a new directory based on input
 #...............................................................................................
-mkdir $(basename $1)_Amplicon_$(whoami)
+mkdir mnt/scratch/${projectID}_amplicon_analysis
 
 # Enter the folder and make it a datalad container
-cd $(basename $1)_Amplicon_$(whoami)
+cd /mnt/scratch/${projectID}_amplicon_analysis
 
 echo 'Preparing data repository...'
 echo ''
@@ -18,7 +39,7 @@ echo ''
 echo ''
 echo 'data repository created...'
 echo 'path is:' $(pwd)
-    
+
 
 # Set up the directory structure
 #...............................................................................................

@@ -21,7 +21,8 @@ path   <- paste0(getwd(),"/01-demultiplexed/", assay)
 # enable writing a loop 
 dada2_analysis1 <- function(voyage = voyage, 
                             assay = assay, 
-                            site = site){
+                            site = site,
+                            cores = cores){
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
@@ -91,12 +92,12 @@ dada2_analysis1 <- function(voyage = voyage,
                        trimLeft = trim_len_Fw,
                        trimRight = trim_len_Rv,
                        minLen = 80,
-                       maxN=0, 
-                       maxEE=c(2,2), 
-                       truncQ=2, 
-                       rm.phix=TRUE,
-                       compress=TRUE, 
-                       multithread=TRUE) # On Windows set multithread=FALSE
+                       maxN = 0,
+                       maxEE = c(2,2),
+                       truncQ = 2,
+                       rm.phix = TRUE,
+                       compress = TRUE,
+                       multithread = cores) # On Windows set multithread=FALSE
   
   head(out)
   
@@ -131,8 +132,8 @@ dada2_analysis1 <- function(voyage = voyage,
   
   
   # Learn the error rates
-  errors_forward <- learnErrors(filtFs, multithread = TRUE)
-  errors_reverse <- learnErrors(filtRs, multithread = TRUE)
+  errors_forward <- learnErrors(filtFs, multithread = cores)
+  errors_reverse <- learnErrors(filtRs, multithread = cores)
   
   #......................................................................................
   # CHECKPOINT Save the result
@@ -172,13 +173,13 @@ dada2_analysis1 <- function(voyage = voyage,
   dada_forward <- dada(derep_forward, 
                        err = errors_forward, 
                        pool = TRUE, 
-                       multithread = 100, 
+                       multithread = cores,
                        verbose = TRUE)
   
   dada_reverse <- dada(derep_reverse, 
                        err = errors_reverse, 
                        pool = TRUE, 
-                       multithread = 100, 
+                       multithread = cores,
                        verbose = TRUE)
   
   #......................................................................................
@@ -198,7 +199,7 @@ dada2_analysis1 <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   save(mergers, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
-  load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
+  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
   #......................................................................................
   
   # Construct Sequence Table
@@ -218,7 +219,10 @@ dada2_analysis1 <- function(voyage = voyage,
 
 for(site in sites){
   
-  dada2_analysis1(voyage, assay, site)
+  dada2_analysis1(voyage,
+                  assay,
+                  site,
+                  cores)
 }
 
 #......................................................................................
@@ -323,7 +327,7 @@ if(assay=="MiFish"){
 # if pooling for denoising, should also pool for chimera removal
 seq_table_nochim <- removeBimeraDenovo(seq_table2, 
                                        method = "pooled", 
-                                       multithread = 100, 
+                                       multithread = cores,
                                        verbose = TRUE)
 
 dim(seq_table_nochim)

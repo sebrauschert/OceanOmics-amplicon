@@ -5,35 +5,57 @@
 # This is the script to run blastn on the LULU curated DADA2 results using the NCBI nt database
 # The query was run seperate for each assay
 
-# Usage: bash scripts/06-blastnt.sh RSV5 custom 16S MiFish
+voyageID=
+assay=
+database=
+cores=50
+#..........................................................................................
+usage()
+{
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
+          exit 1;
+}
+while getopts v:a:d:c: flag
+do
+
+        case "${flag}" in
+            v) voyageID=${OPTARG};;
+            a) assay+=("$OPTARG");;
+            d) database=${OPTARG};;
+            c) cores=${OPTARG};;
+            *) usage;;
+        esac
+done
+if [ "${voyageID}" == ""  ]; then usage; fi
+#if [ "${assay}" == ""  ]; then usage; fi
+if [ "${database}" == ""  ]; then usage; fi
+
 
 # Define voyage ID and database option
-voyage=$1
-option=$2
 
-if [ "$option" == "nt" ];
+if [ "${database}" == "nt" ];
 then
 
-for assay in ${@:3}
+for a in ${assay[@]}
   do
-  bash scripts/blast/run_blastnt.sh ${voyage} ${assay}
+  bash scripts/blast/run_blastnt.sh -v ${voyageID} -a ${a} -c ${cores}
   done
 
 fi
 
-if [ "$option" == "custom" ];
+if [ "${database}" == "custom" ];
 then
 
 # load python and taxonkit environment
 eval "$(conda shell.bash hook)"
 conda activate pytaxonkit
 
-for assay in ${@:3}
+for a in ${assay[@]}
   do
   python scripts/blast/blast-16S-MiFish.py \
-         --dada2_file 04-LULU/LULU_curated_fasta_${voyage}_${assay}.fa \
-         --out_path 05-taxa/blast_out/${voyage}_ \
-         --database ${assay}
+         --dada2_file 04-LULU/LULU_curated_fasta_${voyageID}_${a}.fa \
+         --out_path 05-taxa/blast_out/${voyageID}_ \
+         --database ${a}
   done
 
 fi

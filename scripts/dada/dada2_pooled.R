@@ -9,7 +9,8 @@
 # DADA2 pipeline as function
 # POOLED ANALYSIS 
 dada2_pooled <- function(voyage = voyage, 
-                           assay = assay){
+                         assay = assay,
+                         cores = cores){
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
@@ -79,12 +80,12 @@ dada2_pooled <- function(voyage = voyage,
                        trimLeft = trim_len_Fw,
                        trimRight = trim_len_Rv,
                        minLen = 80,
-                       maxN=0, 
-                       maxEE=c(2,2), 
-                       truncQ=2, 
-                       rm.phix=TRUE,
-                       compress=TRUE, 
-                       multithread=TRUE) # On Windows set multithread=FALSE
+                       maxN = 0,
+                       maxEE = c(2,2),
+                       truncQ = 2,
+                       rm.phix = TRUE,
+                       compress = TRUE,
+                       multithread = cores) # On Windows set multithread=FALSE
   
   head(out)
   
@@ -119,8 +120,8 @@ dada2_pooled <- function(voyage = voyage,
   
   
   # Learn the error rates
-  errors_forward <- learnErrors(filtFs, multithread = TRUE)
-  errors_reverse <- learnErrors(filtRs, multithread = TRUE)
+  errors_forward <- learnErrors(filtFs, multithread = cores)
+  errors_reverse <- learnErrors(filtRs, multithread = cores)
   
   #......................................................................................
   # CHECKPOINT Save the result
@@ -160,13 +161,13 @@ dada2_pooled <- function(voyage = voyage,
   dada_forward <- dada(derep_forward, 
                        err = errors_forward, 
                        pool = TRUE, 
-                       multithread = 100, 
+                       multithread = cores,
                        verbose = TRUE)
   
   dada_reverse <- dada(derep_reverse, 
                        err = errors_reverse, 
                        pool = TRUE, 
-                       multithread = 100, 
+                       multithread = cores,
                        verbose = TRUE)
   
   #......................................................................................
@@ -237,7 +238,7 @@ dada2_pooled <- function(voyage = voyage,
   # if pooling for denoising, should also pool for chimera removal
   seq_table_nochim <- removeBimeraDenovo(seq_table2, 
                                          method = "pooled", 
-                                         multithread = 100, 
+                                         multithread = cores,
                                          verbose = TRUE)
   
   dim(seq_table_nochim)
@@ -406,4 +407,5 @@ dada2_pooled <- function(voyage = voyage,
 
 # Run analysis function
 dada2_pooled(voyage,
-             assay)
+             assay,
+             cores)

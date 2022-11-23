@@ -1,5 +1,25 @@
 #!/bin/bash
 
+voyageID=
+assay=
+
+usage()
+{
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay>\t<string>\n\n";
+          exit 1;
+}
+while getopts v:a: flag
+do
+
+        case "${flag}" in
+            v) voyageID=${OPTARG};;
+            a) assay=${OPTARG};;
+            *) usage;;
+        esac
+done
+if [ "${voyageID}" == ""  ]; then usage; fi
+if [ "${assay}" == ""  ]; then usage; fi
+
 # load amplicon environment
 eval "$(conda shell.bash hook)"
 conda activate blast-2.12.0
@@ -10,9 +30,6 @@ mkdir -p 04-LULU/database
 ln -s $(pwd)/03-dada2/*.fa 04-LULU/database/
 
 cd 04-LULU/database
-
-voyage=$1
-assay=$2
 
 #First produce a blastdatabase with the OTUs
 makeblastdb -in ${voyage}_${assay}.fa -parse_seqids -dbtype nucl
