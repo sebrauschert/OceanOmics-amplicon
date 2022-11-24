@@ -3,57 +3,50 @@ set -e
 set -o pipefail # see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # set -u does not work well with SLURM, conda, or HPC module systems IME
 
-# Source conda so we can use it with environments
-#...............................................................................................
-eval "$(conda shell.bash hook)"
+# USAGE:
+# bash 00-setup.sh -v <project/voyage ID>
 
-# 1.) Create the directory structure; for this we require the datalad software to be installed 
-# https://www.datalad.org/
-#...............................................................................................
+projectID=
 
-conda activate datalad
+usage()
+{
+          printf "Usage: $0 -p <projectID>\t<string>\n\n";
+          exit 1;
+}
+while getopts p: flag
+do
+
+        case "${flag}" in
+            p) projectID=${OPTARG};;
+            *) usage;;
+        esac
+done
+if [ "${projectID}" == ""  ]; then usage; fi
+
 
 # Create a new directory based on input
 #...............................................................................................
-mkdir $(basename $1)_Amplicon_$(whoami)
+mkdir mnt/scratch/${projectID}_amplicon_analysis
 
 # Enter the folder and make it a datalad container
-cd $(basename $1)_Amplicon_$(whoami)
+cd /mnt/scratch/${projectID}_amplicon_analysis
 
 echo 'Preparing data repository...'
 echo ''
 
-datalad create .
-
-# And finally, add the necessary lines to the .gitattributes that we need
-#...............................................................................................
-echo -en '\n***.org annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.sh annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.txt annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.py annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.ipynb annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.R annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.Rmd annex.largefiles=nothing' >> .gitattributes
-echo -en '\n***.md annex.largefiles=nothing' >> .gitattributes
-echo -en '\n** annex.largefiles(largerthan=200kb)' >> .gitattributes
-
-# We need to save the changes now
-#...............................................................................................   
-datalad save -m "Appended .gitattributes to not track text files"
-    
 # Finished
 echo ''
 echo ''
 echo 'data repository created...'
 echo 'path is:' $(pwd)
-    
+
 
 # Set up the directory structure
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
-      01-QC \
-      02-demultiplexed/$2 \
-      02-demultiplexed/$3 \
+      01-demultiplexed/$2 \
+      01-demultiplexed/$3 \
+      02-QC \
       03-dada2/QC_plots \
       03-dada2/tmpfiles \
       03-dada2/errorModel \
@@ -74,10 +67,9 @@ echo "# Script used:" >> README.md
 echo "# Software version:" >> README.md
 echo "# Problems encountered:" >> README.md
 
-conda deactivate
 
-parallel cp README.md ::: 01-QC \
-      02-demultiplexed \
+parallel cp README.md ::: 02-QC \
+      01-demultiplexed \
       03-dada2 \
       04-taxa \
       05-LULU \
@@ -97,12 +89,7 @@ echo "# Overview:" >> README.md
 
 # Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
 # get current folder
-folder=`dirname -- "${BASH_SOURCE[0]}"`
-cp -r ${folder} .
-
-conda activate datalad
-
-datalad save -m "Analysis repo setup"
+cp -r ../OceanOmics-amplicon/scripts/* scripts
 
 # Finished
 #...............................................................................................

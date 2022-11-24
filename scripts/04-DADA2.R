@@ -21,13 +21,16 @@ option_list = list(
   make_option(c("-a", "--assay"), action="store", default=NA, type='character',
               help="assay, e.g. '16S' or 'MiFish"),
   make_option(c("-o", "--option"), action="store", default=NA, type='character',
-              help="pooled, site or fixed error"))  
+              help="pooled, site or fixed error"),
+  make_option(c("-c", "--cores"), action="store", default=20, type='integer',
+              help="number of cores, default 20"))
 
 opt = parse_args(OptionParser(option_list=option_list))
 
 voyage <- opt$voyage
 assay  <- opt$assay
 option <- opt$option
+cores  <- opt$cores
 
 
 

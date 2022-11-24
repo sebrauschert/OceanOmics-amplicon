@@ -10,22 +10,23 @@
 # SITE SPECIFIC ERROR ANALYSIS 
 
 # Make sure to not include the unnamed and unknown directories
-excl <- c(grep('unknown', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))),
-          grep('unnamed', basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))))
+excl <- c(grep('unknown', basename(list.dirs(paste0('01-demultiplexed/', assay), recursive = FALSE))),
+          grep('unnamed', basename(list.dirs(paste0('01-demultiplexed/', assay), recursive = FALSE))))
 
-sites  <- basename(list.dirs(paste0('02-demultiplexed/', assay), recursive = FALSE))[-excl]
+sites  <- basename(list.dirs(paste0('01-demultiplexed/', assay), recursive = FALSE))[-excl]
 
-path   <- paste0(getwd(),"/02-demultiplexed/", assay)
+path   <- paste0(getwd(),"/01-demultiplexed/", assay)
 
 # DADA2 pipeline as function to 
 # enable writing a loop 
 dada2_analysis1 <- function(voyage = voyage, 
                             assay = assay, 
-                            site = site){
+                            site = site,
+                            cores = cores){
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
-  path         <- paste0(getwd(),"/02-demultiplexed/", assay, "/", site)
+  path         <- paste0(getwd(),"/01-demultiplexed/", assay, "/", site)
   list.files(path)
   
   # loading index file
@@ -91,12 +92,12 @@ dada2_analysis1 <- function(voyage = voyage,
                        trimLeft = trim_len_Fw,
                        trimRight = trim_len_Rv,
                        minLen = 80,
-                       maxN=0, 
-                       maxEE=c(2,2), 
-                       truncQ=2, 
-                       rm.phix=TRUE,
-                       compress=TRUE, 
-                       multithread=TRUE) # On Windows set multithread=FALSE
+                       maxN = 0,
+                       maxEE = c(2,2),
+                       truncQ = 2,
+                       rm.phix = TRUE,
+                       compress = TRUE,
+                       multithread = cores) # On Windows set multithread=FALSE
   
   head(out)
   
@@ -131,8 +132,8 @@ dada2_analysis1 <- function(voyage = voyage,
   
   
   # Learn the error rates
-  errors_forward <- learnErrors(filtFs, multithread = TRUE)
-  errors_reverse <- learnErrors(filtRs, multithread = TRUE)
+  errors_forward <- learnErrors(filtFs, multithread = cores)
+  errors_reverse <- learnErrors(filtRs, multithread = cores)
   
   #......................................................................................
   # CHECKPOINT Save the result
@@ -172,13 +173,13 @@ dada2_analysis1 <- function(voyage = voyage,
   dada_forward <- dada(derep_forward, 
                        err = errors_forward, 
                        pool = TRUE, 
-                       multithread = TRUE, 
+                       multithread = cores,
                        verbose = TRUE)
   
   dada_reverse <- dada(derep_reverse, 
                        err = errors_reverse, 
                        pool = TRUE, 
-                       multithread = TRUE, 
+                       multithread = cores,
                        verbose = TRUE)
   
   #......................................................................................
@@ -198,7 +199,7 @@ dada2_analysis1 <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   save(mergers, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
-  load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
+  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_", site,"_merged.RData"))
   #......................................................................................
   
   # Construct Sequence Table
@@ -218,7 +219,10 @@ dada2_analysis1 <- function(voyage = voyage,
 
 for(site in sites){
   
-  dada2_analysis1(voyage, assay, site)
+  dada2_analysis1(voyage,
+                  assay,
+                  site,
+                  cores)
 }
 
 #......................................................................................
@@ -323,10 +327,27 @@ if(assay=="MiFish"){
 # if pooling for denoising, should also pool for chimera removal
 seq_table_nochim <- removeBimeraDenovo(seq_table2, 
                                        method = "pooled", 
-                                       multithread = TRUE, 
+                                       multithread = cores,
                                        verbose = TRUE)
 
 dim(seq_table_nochim)
+
+seq_dist <- as.data.frame(nchar(getSequences(seq_table_nochim)))
+seq_dist
+
+# Create histogram of sequence length distributions
+seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table_nochim)))) +
+  geom_histogram(bins = 50, ) +
+  ylab('Number of reads') +
+  xlab('Sequence length (bp)') +
+  theme(text = element_text(size=20))
+seq_hist
+
+# Save plot
+ggsave(plot = seq_hist,
+       filename = paste0("03-dada2/QC_plots/", voyage, "_ASV_seq_distribution_noChim_",assay,".png"),
+       height = 10,
+       width = 12)
 
 #......................................................................................
 # CHECKPOINT Save the result
@@ -347,7 +368,7 @@ sample_names = list()
 get_samples_names <- function(voyage = voyage,
                               assay = assay,
                               site = site){
-  path         <- paste0(getwd(),"/02-demultiplexed/", assay, "/", site)
+  path         <- paste0(getwd(),"/01-demultiplexed/", assay, "/", site)
   list.files(path)
   fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
   sample_names <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".1.fq.gz")))))
@@ -363,24 +384,27 @@ sample_names <- unlist(sample_names, use.names = F)
 get_n <- function(x) sum(getUniques(x))
 
 #forward reads track
-track_Fs <- cbind(out, sapply(dada_forward, get_n), rowSums(seq_table2), rowSums(seq_table_nochim))  %>%
+#forward reads track
+track_Fs <- cbind(out, sapply(dada_forward, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
   as.data.frame() %>%
   mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
 colnames(track_Fs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
 rownames(track_Fs) <- sample_names
+track_Fs <- rownames_to_column(track_Fs, var = "Samples")
 head(track_Fs)
 tail(track_Fs)
-write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
+write_tsv(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",voyage, "_", assay, ".tsv"))
 
 #reverse reads track
-track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(seq_table2), rowSums(seq_table_nochim))  %>%
+track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
   as.data.frame() %>%
   mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
 colnames(track_Rs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
 rownames(track_Rs) <- sample_names
+track_Rs <- rownames_to_column(track_Rs, var = "Samples")
 head(track_Rs)
 tail(track_Rs)
-write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
+write_tsv(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",voyage, "_", assay, ".tsv"))
 
 summary(track_Fs$nonchim)
 summary(track_Rs$nonchim)
@@ -478,7 +502,7 @@ asv_for_lca[,1] <- str_remove(as.vector(unlist(asv_for_lca[,1])) , ">")
 asv_for_lca$ASV_sequence <- asv_seqs
 write_delim(asv_for_lca, paste0("03-dada2/",voyage, "_final_table_",assay,".tsv"), delim = '\t')
 
-lca_input <- asvs_for_lca %>%
+lca_input <- asv_for_lca %>%
   rename('#ID' = ASV) %>%
   select(-ASV_sequence)
 write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
