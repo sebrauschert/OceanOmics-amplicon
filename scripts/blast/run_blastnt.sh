@@ -14,6 +14,8 @@ usage()
 {
           printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay one at a time>\t<string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
                     exit 1;
+}
+
 
 
 while getopts v:a:c: flag
