@@ -8,14 +8,13 @@
 # Usage: bash scripts/06-blastnt.sh RSV5 16S
 voyageID=
 assay=
-database=
 cores=50
 #..........................................................................................
-#usage()
-#{
-#          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
-#                    exit 1;
-#
+usage()
+{
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay one at a time>\t<string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
+                    exit 1;
+
 
 while getopts v:a:c: flag
 do
