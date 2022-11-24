@@ -6,16 +6,30 @@
 # The query was run seperate for each assay
 
 # Usage: bash scripts/06-blastnt.sh RSV5 16S
+voyageID=
+assay=
+database=
+cores=50
+#..........................................................................................
+#usage()
+#{
+#          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
+#                    exit 1;
+#
 
-#activate amplicon conda environment
-eval "$(conda shell.bash hook)"
+while getopts v:a:c: flag
+do
 
-#"$(conda shell.bash hook)"
-conda activate amplicon
+        case "${flag}" in
+                    v) voyageID=${OPTARG};;
+                    a) assay=${OPTARG};;
+                    c) cores=${OPTARG};;
+                    *) usage;;
+                esac
+done
+if [ "${voyageID}" == ""   ]; then usage; fi
+if [ "${assay}" == ""   ]; then usage; fi
 
-# Define the voyage ID and assay in the command line arguments
-voyage=$1
-assay=$2
 
 #activate blast conda environment
 eval "$(conda shell.bash hook)"
@@ -24,10 +38,10 @@ eval "$(conda shell.bash hook)"
 conda activate blast-2.12.0
 
 # Now we can use the LULU curated fasta file for the blastn input
-echo blasting ${voyage} ${assay} ASVs
+echo blasting ${voyageID} ${assay} ASVs
 
 blastn -db /data/tools/databases/ncbi-nt/nt \
-       -query 04-LULU/LULU_curated_fasta_${voyage}_${assay}.fa \
-       -num_threads 100 \
+       -query 04-LULU/LULU_curated_fasta_${voyageID}_${assay}.fa \
+       -num_threads ${cores} \
        -outfmt "6 qseqid sseqid staxids sscinames scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp" \
-       -html > 05-taxa/blast_out/${voyage}_${assay}_nt.tsv
+       -html > 05-taxa/blast_out/${voyageID}_${assay}_nt.tsv
