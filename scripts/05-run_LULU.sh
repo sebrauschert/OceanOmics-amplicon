@@ -1,7 +1,8 @@
 #!/bin/bash
 
 voyageID=
-assay=
+#assay=
+
 #..........................................................................................
 usage()
 {
@@ -18,29 +19,29 @@ do
         esac
 done
 if [ "${voyageID}" == ""  ]; then usage; fi
-#if [ "${assay}" == ""  ]; then usage; fi
+#if [ "${assay[@]}" == ""  ]; then usage; fi
 
 
-for a in ${assay[@]}
+for a in "${assay[@]}"
   do
         eval "$(conda shell.bash hook)"
         conda activate pytaxonkit
-        echo  "Running LULU on ${voyage} ${assay}"
+        echo  "Running LULU on ${voyageID} ${a}"
         
-        bash scripts/LULU/01-lulu_create_match_list.sh ${voyage} ${assay}
+        bash scripts/LULU/01-lulu_create_match_list.sh -v ${voyageID} -a ${a}
         
-        Rscript scripts/LULU/02-LULU.R -v ${voyage} -a ${assay}
+        Rscript scripts/LULU/02-LULU.R -v ${voyageID} -a ${a}
 
         # Activate amplicon conda environent for seqkit
         eval "$(conda shell.bash hook)"
         conda activate amplicon
 
  	    # Next we need to curate the fasta files from DADA2 to only include the ASVs output by LULU
-        echo curating ${voyage} ${assay} fasta file
+        echo curating ${voyageID} ${a} fasta file
 
-        cat 04-LULU/LULU_curated_counts_${voyage}_${assay}.csv | \
+        cat 04-LULU/LULU_curated_counts_${voyageID}_${a}.csv | \
         cut -d "," -f1 | \
         sed 1,1d | \
-        seqkit grep -f - 03-dada2/${voyage}_${assay}.fa -o 04-LULU/LULU_curated_fasta_${voyage}_${assay}.fa
+        seqkit grep -f - 03-dada2/${voyageID}_${a}.fa -o 04-LULU/LULU_curated_fasta_${voyageID}_${a}.fa
 done
 

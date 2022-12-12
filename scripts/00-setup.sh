@@ -26,10 +26,10 @@ if [ "${projectID}" == ""  ]; then usage; fi
 
 # Create a new directory based on input
 #...............................................................................................
-mkdir mnt/scratch/${projectID}_amplicon_analysis
+mkdir ${projectID}_amplicon_analysis
 
 # Enter the folder and make it a datalad container
-cd /mnt/scratch/${projectID}_amplicon_analysis
+cd ${projectID}_amplicon_analysis
 
 echo 'Preparing data repository...'
 echo ''
@@ -44,15 +44,14 @@ echo 'path is:' $(pwd)
 # Set up the directory structure
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
-      01-demultiplexed/$2 \
-      01-demultiplexed/$3 \
+      01-demultiplexed \
       02-QC \
       03-dada2/QC_plots \
       03-dada2/tmpfiles \
       03-dada2/errorModel \
-      04-taxa/blast_out \
-      04-taxa/LCA_out \
-      05-LULU \
+      04-LULU \
+      05-taxa/blast_out \
+      05-taxa/LCA_out \
       06-report \
       scripts
 
@@ -68,11 +67,11 @@ echo "# Software version:" >> README.md
 echo "# Problems encountered:" >> README.md
 
 
-parallel cp README.md ::: 02-QC \
-      01-demultiplexed \
+parallel cp README.md ::: 01-demultiplexed \
+      02-QC \
       03-dada2 \
-      04-taxa \
-      05-LULU \
+      04-LULU \
+      05-taxa \
       06-report
 
 # Remove the readme file from the main folder structure

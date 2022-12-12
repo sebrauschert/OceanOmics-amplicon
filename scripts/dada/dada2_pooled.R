@@ -14,7 +14,7 @@ dada2_pooled <- function(voyage = voyage,
   
   # add checks if assay and site are provided to make troubleshooting easier
   # define path
-  path         <- paste0(getwd(),"/01-demultiplexed/", assay)
+  path         <- paste0("01-demultiplexed/", assay)
   list.files(path)
   
   # loading index file
@@ -37,24 +37,21 @@ dada2_pooled <- function(voyage = voyage,
     qualityprofile_Fs <- plotQualityProfile(fnFs[i])
     
     ggsave(plot = qualityprofile_Fs, 
-           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_raw.png"), 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_raw.png"),
            height = 5, width = 7)
     
     qualityprofile_Rs <- plotQualityProfile(fnRs[i])
     
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_raw.png"), 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_raw.png"),
            height = 5, width = 7)
   }
   
   # check barcode lengths
   head(tags)
-  if(assay=="MiFish"){
-    tags <- subset(tags, assay=="MiFish")
-  } else {
-    tags <- subset(tags, assay=="16S")
-  }
   
+  tags <- subset(tags, assay==assay)
+
   len_barcode_Fw <- unique(nchar(tags$index_seq_Fw))
   len_barcode_Rv <- unique(nchar(tags$index_seq_Rv))
   len_primer_Fw <- unique(nchar(tags$full_primer_seq_Fw))
@@ -65,7 +62,7 @@ dada2_pooled <- function(voyage = voyage,
   trim_len_Rv <- len_primer_Rv - len_barcode_Rv
   
   # Assigns file names and place filtered files in filtered/sub directory
-  filtered_path    <- file.path(paste0(getwd(),"/03-dada2/filtered_", voyage, "_", assay))
+  filtered_path    <- file.path(paste0("03-dada2/filtered_", voyage, "_", assay))
   filtFs <- file.path(filtered_path,
                       paste0(sample.names_Fs, "_", assay, "_1_trimmed.fq.gz"))
   filtRs <- file.path(filtered_path,
@@ -75,19 +72,17 @@ dada2_pooled <- function(voyage = voyage,
   
   # Trimming based on quality + barcode/primer removal
   ## the maxEE = expected error - filtering based on quality
-  out <- filterAndTrim(fnFs, filtFs, 
-                       fnRs, filtRs, 
-                       trimLeft = trim_len_Fw,
-                       trimRight = trim_len_Rv,
-                       minLen = 80,
-                       maxN = 0,
-                       maxEE = c(2,2),
-                       truncQ = 2,
-                       rm.phix = TRUE,
-                       compress = TRUE,
-                       multithread = cores) # On Windows set multithread=FALSE
   
+  out <- filterAndTrim(fnFs, filtFs,
+                       fnRs, filtRs,
+                       trimLeft = c(trim_len_Fw,trim_len_Rv),
+                       maxN=0,
+                       truncQ=0,
+                       rm.phix=TRUE,
+                       compress=TRUE,
+                       multithread=cores)
   head(out)
+  
   
   #......................................................................................
   # CHECKPOINT Save the result
@@ -107,13 +102,13 @@ dada2_pooled <- function(voyage = voyage,
     qualityprofile_Fs <- plotQualityProfile(filtFs[i])
     
     ggsave(plot = qualityprofile_Fs, 
-           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_trimmed.png"), 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_trimmed.png"),
            height = 5, width = 7)
     
     qualityprofile_Rs <- plotQualityProfile(filtRs[i])
     
     ggsave(plot = qualityprofile_Rs, 
-           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_trimmed.png"), 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_trimmed.png"),
            height = 5, width = 7)
   }
   
@@ -126,18 +121,18 @@ dada2_pooled <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_pooled_error_rates.RData"))
-  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
+  #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
   #......................................................................................
   
   # visualise the estimated error rates
   errorsplot_Fs <- plotErrors(errors_forward, nominalQ = TRUE)
   ggsave(plot = errorsplot_Fs, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Fs_", assay,".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Fs_", assay,".png"),
          height = 5, 
          width = 7)
   errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
   ggsave(plot = qualityprofile_Rs, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Rs_", assay, ".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Rs_", assay, ".png"),
          height = 5, 
          width = 7)
   
@@ -154,7 +149,7 @@ dada2_pooled <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   save(derep_forward, derep_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
-  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
+  #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
   #......................................................................................
   
   # Sample inference
@@ -173,7 +168,7 @@ dada2_pooled <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   save(dada_forward, dada_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
-  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
+  #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
   #......................................................................................
   
   # merge paired end reads
@@ -182,26 +177,27 @@ dada2_pooled <- function(voyage = voyage,
                         dada_reverse, 
                         filtRs, 
                         minOverlap = 5,
+                        maxMismatch = 2,
                         verbose=TRUE)
   
   #......................................................................................
   # CHECKPOINT Save the result
   save(mergers, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
-  #load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
+  #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
   #......................................................................................
   
   # Construct Sequence Table
   seq_table <- makeSequenceTable(mergers)
-  dim(seq_table)
+  #dim(seq_table)
   
   # inspect distribution of sequence lengths
-  table(nchar(getSequences(seq_table)))
+  #table(nchar(getSequences(seq_table)))
   
-  mean(nchar(getSequences(seq_table)))
-  median(nchar(getSequences(seq_table)))
+  #mean(nchar(getSequences(seq_table)))
+  #median(nchar(getSequences(seq_table)))
   
   seq_dist <- as.data.frame(nchar(getSequences(seq_table)))
-  seq_dist
+  #seq_dist
   
   # Create histogram of sequence length distributions
   seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table)))) +
@@ -221,18 +217,20 @@ dada2_pooled <- function(voyage = voyage,
   #......................................................................................
   # CHECKPOINT Save the result
   saveRDS(seq_table, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_seq_tab.rds"))
-  # readRDS(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_seq_tab.rds"))
+  # readRDS(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_seq_tab.rds"))
   #......................................................................................
   
   # filter for amplicon length: The 16S and MiFish primers each have a specific range of base pairs
   ## 16S = 178 - 228
   ## MiFish = 163 - 185
   
-  if(assay=="MiFish"){
-    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 163:185]
-  } else {
-    seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 178:228]
-  }
+  # if(assay=="MiFish"){
+  #   seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 163:185]
+  # } else {
+  #   seq_table2 <- seq_table[,nchar(colnames(seq_table)) %in% 178:228]
+  # }
+  
+  seq_table2 <- seq_table
   
   # Remove Chimeras
   # if pooling for denoising, should also pool for chimera removal
@@ -243,27 +241,10 @@ dada2_pooled <- function(voyage = voyage,
   
   dim(seq_table_nochim)
   
-  seq_dist <- as.data.frame(nchar(getSequences(seq_table_nochim)))
-  seq_dist
-  
-  # Create histogram of sequence length distributions
-  seq_hist <- ggplot(seq_dist, aes(nchar(getSequences(seq_table_nochim)))) +
-    geom_histogram(bins = 50, ) +
-    ylab('Number of reads') +
-    xlab('Sequence length (bp)') +
-    theme(text = element_text(size=20))
-  seq_hist
-  
-  # Save plot
-  ggsave(plot = seq_hist,
-         filename = paste0("03-dada2/QC_plots/", voyage, "_ASV_seq_distribution_noChim_",assay,".png"),
-         height = 10,
-         width = 12)
-  
   #......................................................................................
   # CHECKPOINT Save the result
   save(seq_table_nochim, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_seq_table_nochim.RData"))
-  # load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_seq_table_nochim.RData"))
+  # load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_seq_table_nochim.RData"))
   #......................................................................................
   
   # which percentage of our reads did we keep?
@@ -274,52 +255,48 @@ dada2_pooled <- function(voyage = voyage,
   out <- readRDS(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_filterAndTrim_out.rds"))
   load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
   
+  
   ## Overview of counts throughout
-  get_n <- function(x) sum(getUniques(x))
-  
+  getN <- function(x) sum(getUniques(x))
   
   #forward reads track
-  #forward reads track
-  track_Fs <- cbind(out, sapply(dada_forward, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
+  track_Fs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-  colnames(track_Fs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
+  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
   rownames(track_Fs) <- sample.names_Fs
-  track_Fs <- rownames_to_column(track_Fs, var = "Samples")
   head(track_Fs)
   tail(track_Fs)
-  write_tsv(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",voyage, "_", assay, ".tsv"))
+  write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
   
   #reverse reads track
-  track_Rs <- cbind(out, sapply(dada_reverse, get_n), rowSums(merged_seq_table), rowSums(seq_table_nochim))  %>%
+  track_Rs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-  colnames(track_Rs) <- c('input', 'filtered', 'denoised', 'tabled', 'nonchim', 'final_perc_reads_retained')
+  colnames(track_Rs) <-  c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
   rownames(track_Rs) <- sample.names_Rs
-  track_Rs <- rownames_to_column(track_Rs, var = "Samples")
   head(track_Rs)
   tail(track_Rs)
-  write_tsv(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",voyage, "_", assay, ".tsv"))
+  write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
   
-  
-  summary(track_Fs$nonchim)
-  summary(track_Rs$nonchim)
+  #summary(track_Fs$nonchim)
+  #summary(track_Rs$nonchim)
   
   # plot out tracking of sample reads through stages ####
   samps_Fs <- row.names(track_Fs)
   track_df_Fs <- data.frame(track_Fs) %>%
     mutate(samps = samps_Fs,
            site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-    gather('stage', 'reads', c(input, filtered, denoised, tabled, nonchim))
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
   
   samps_Rs <- row.names(track_Rs)
   track_df_Rs <- data.frame(track_Rs) %>%
     mutate(samps = samps_Rs,
            site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-    gather('stage', 'reads', c(input, filtered, denoised, tabled, nonchim))
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
   
   # create plots
-  track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c('input', 'filtered', 'denoised', 'tabled', 'nonchim')), reads)) +
+  track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
     geom_boxplot(outlier.shape = NA) +
     geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
     scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Fs$site)))) +
@@ -328,7 +305,7 @@ dada2_pooled <- function(voyage = voyage,
     theme_bw() +
     theme(legend.position = "bottom")
   
-  track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c('input', 'filtered', 'denoised', 'tabled', 'nonchim')), reads)) +
+  track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
     geom_boxplot(outlier.shape = NA) +
     geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
     scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Rs$site)))) +
@@ -339,16 +316,16 @@ dada2_pooled <- function(voyage = voyage,
   
   # save plots
   ggsave(plot = track_boxplot_Fw, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_",assay,".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_",assay,".png"),
          height = 10, 
          width = 12)
   ggsave(plot = track_boxplot_Rv, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Rv_",assay,".png"), 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Rv_",assay,".png"),
          height = 10, 
          width = 12)
   
   #Check if all sequences are the same length
-  plyr::count(unlist(lapply(colnames(seq_table_nochim), function(x) stringi::stri_length(x))))
+  #plyr::count(unlist(lapply(colnames(seq_table_nochim), function(x) stringi::stri_length(x))))
   
   # Save the ASV sequences as .fa file
   asv_seqs <- colnames(seq_table_nochim)
@@ -358,9 +335,9 @@ dada2_pooled <- function(voyage = voyage,
     asv_headers[i] <- paste(">ASV", i, sep="_")
   }
   
-  asv_final_table <- seq_table_nochim
+  asv_final_table           <- seq_table_nochim
   colnames(asv_final_table) <- asv_headers
-  IDs <- rownames(asv_final_table)
+  IDs                       <- rownames(asv_final_table)
   
   as_tibble(asv_final_table) %>%
     mutate(sample_id = IDs) %>%
@@ -402,6 +379,7 @@ dada2_pooled <- function(voyage = voyage,
     rename('#ID' = ASV) %>%
     select(-ASV_sequence)
   write_tsv(lca_input, paste0("03-dada2/", voyage, "_", assay, "_lca_input.tsv"))
+  
   
 }
 
