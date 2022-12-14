@@ -128,7 +128,19 @@ def process_blast_output(out_file, database):
 
         blast_16 = pd.read_csv(out_file, sep = '\t', header = None)
         blast_16[blast_16.columns[3]] = blast_16[blast_16.columns[3]].str.split(',').str[0].values
-        blast_16['taxid'] = pytaxonkit.name2taxid(blast_16[blast_16.columns[3]])['TaxID']
+        # VERY few species have two taxonomy IDs: Guyu wujalwujalensis, Xiphocheilus typus
+        # we just choose the first one here
+        taxid_df = pytaxonkit.name2taxid(blast_16[blast_16.columns[3]])
+        # we can have duplicate IDs, so taxid_df is longer than the blast_mifish df
+        # first, remove the second/third ones
+        unique_taxids = taxid_df.groupby('Name').first().reset_index()
+        # now remove duplicate taxids
+        taxid_df = taxid_df.loc[taxid_df['TaxID'].isin(unique_taxids['TaxID'])].reset_index()
+        # NOT resetting the index leads to curious bugs when adding the column below
+        assert taxid_df.shape[0] == blast_16.shape[0], \
+                f'ERROR: the pytaxonkit results have different rows ({taxid_df.shape[0]}) than the blast results ({blast_16.shape[0]})'
+        blast_16['taxid'] = taxid_df['TaxID']
+ 
         blast_16 = blast_16[[0, 1, 'taxid', 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]]
         blast_16.columns = ['ASV', 'sseqid', 'taxid', 'Species',  'scomnames', 'sskingdoms', 'pident', 'length', 'qlen', 'slen', 'mismatch', 'gapopen', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore', 'qcovs', '20']
         blast_16.to_csv(out_file, sep = '\t', index = False)
@@ -154,12 +166,16 @@ def process_blast_output(out_file, database):
                 taxa_list.append(tax)
 
             else:
-
                 tax = hit.split('|')[2].split('(')[0].strip()
                 taxa_list.append(tax)
 
         blast_mifish['taxa'] = taxa_list
-        blast_mifish['taxid'] = pytaxonkit.name2taxid(blast_mifish[blast_mifish.columns[len(blast_mifish.columns)-1]])['TaxID']
+        taxid_df = pytaxonkit.name2taxid(blast_mifish[blast_mifish.columns[len(blast_mifish.columns)-1]])
+        unique_taxids = taxid_df.groupby('Name').first().reset_index()
+        taxid_df = taxid_df.loc[taxid_df['TaxID'].isin(unique_taxids['TaxID'])].reset_index()
+        assert taxid_df.shape[0] == blast_mifish.shape[0], \
+                f'ERROR: the pytaxonkit results have different rows ({taxid_df.shape[0]}) than the blast results ({blast_mifish.shape[0]})'
+        blast_mifish['taxid'] = taxid_df['TaxID']
         
         blast_mifish = blast_mifish[[0, 1, 'taxid', 'taxa', 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]]
         blast_mifish.columns = ['ASV', 'sseqid', 'taxid', 'Species',  'scomnames', 'sskingdoms', 'pident', 'length', 'qlen', 'slen', 'mismatch', 'gapopen', 'gaps', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore', 'qcovs', '20']

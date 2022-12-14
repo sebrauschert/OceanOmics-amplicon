@@ -45,8 +45,8 @@ for a in "${assay[@]}"
     mmv < ${ROOT_DIR}/00-raw-data/indices/Sample_name_rename_pattern_${voyageID}_${a}.txt
    
     # move the unnamed and unknowns into separate folders 
-    mkdir -p unknown unnamed
-    mv *unknown*.fq.gz unknown
-    mv ${a}-* unnamed
+    mkdir -p ${ROOT_DIR}/01-demultiplexed/${a}/unknown ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
+    mv ${ROOT_DIR}/01-demultiplexed/${a}/*unknown*.fq.gz ${ROOT_DIR}/01-demultiplexed/${a}/unknown
+    mv ${ROOT_DIR}/01-demultiplexed/${a}-* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
      
 done

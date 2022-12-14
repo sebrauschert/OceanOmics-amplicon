@@ -8,7 +8,7 @@
 #                        -c <number of cores, default 50>
 
 voyageID=
-assay=
+#assay=
 cores=50
 
 #..........................................................................................
@@ -36,7 +36,7 @@ ulimit -S -n 4096
 
 # load amplicon environment
 eval "$(conda shell.bash hook)"
-conda activate amplicon
+conda activate cutadapt-v4.1
 
 for a in "${assay[@]}"
 do
@@ -57,14 +57,16 @@ do
     # | all combinations of indexes are possible.
     # | this is another difference: the output will assign the name from the forward and reverse
     # | reads that were identified with the dual index
+    # |
+    # |the '^' in front of file (^file:) means that we anchor the tags to the beginning of the read!
     #..........................................................................................
 
 
     cutadapt -j ${cores} \
         -e 0.15 \
         --no-indels \
-        -g file:${input_directory}/indices/${voyageID}_${a}_Fw.fa  \
-        -G file:${input_directory}/indices/${voyageID}_${a}_Rv.fa \
+        -g ^file:${input_directory}/indices/${voyageID}_${a}_Fw.fa  \
+        -G ^file:${input_directory}/indices/${voyageID}_${a}_Rv.fa \
         -o ${output_folder}/{name1}-{name2}.R1.fq.gz \
         -p ${output_folder}/{name1}-{name2}.R2.fq.gz \
         --report=full \

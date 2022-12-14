@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cutadapt=3.2=py37hf01694f_0
+  - cutadapt=4.1=py310h1425a21_1
   - dnaio=0.6.0=py37h73a75cf_0
   - fastqc=0.11.9=hdfd78af_1
   - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0

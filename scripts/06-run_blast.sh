@@ -6,7 +6,7 @@
 # The query was run seperate for each assay
 
 voyageID=
-assay=
+#assay=
 database=
 cores=50
 #..........................................................................................
