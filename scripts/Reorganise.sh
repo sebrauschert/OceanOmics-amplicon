@@ -7,7 +7,7 @@
 voyage=$1
 assay=$2
 
-input_directory="$(pwd)/02-demultiplexed/${assay}"
+input_directory="$(pwd)/01-demultiplexed/${assay}"
 declare -a SITES=("")
 declare -a SAMPLES=({1..5} "WC")
 
