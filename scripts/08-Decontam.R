@@ -30,7 +30,7 @@ option <- opt$option
 suffix <- paste0("_", assay, ".1.fq.gz")
 controls <- list.files(paste0("./01-demultiplexed/", assay, "/Controls/"), pattern = paste0("*", suffix))
 
-# the water controls might be in the sight folders
+# the water controls might be in the site folders
 water_suffix <- paste0("WC", suffix)
 water_controls <- list.files(paste0("./01-demultiplexed/", assay, "/"), pattern = paste0("*", water_suffix), recursive = TRUE)                       
 water_controls <- basename(water_controls)
@@ -53,7 +53,7 @@ controls <- sub(suffix, "", controls)
    # Mark all potential contaminant ASV sequences in new column
    lca_tab$Contam <- "False"
    
-   # All ASV sequences identified in any control samples -excluding bleach controls
+   # All ASV sequences identified in any control samples
    for (i in controls){
      lca_tab$Contam[lca_tab[i] >0] <- "True"
    }
@@ -87,7 +87,7 @@ controls <- sub(suffix, "", controls)
    # Mark all potential contaminant ASV sequences in new column
    lca_tab$Contam <- "False"
    
-   # All ASV sequences identified in any control samples -excluding bleach controls
+   # All ASV sequences identified in any control samples
    for (i in controls){
      lca_tab$Contam[lca_tab[i] >0] <- "True"
    }
