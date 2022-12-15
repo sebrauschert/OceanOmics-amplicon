@@ -40,7 +40,7 @@ conda activate cutadapt-v4.1
 
 for a in "${assay[@]}"
 do
-    # This script used cutadapt v3.2
+    # This script uses cutadapt v4.1
     echo De-multiplexing
     input_directory="$(pwd)/00-raw-data"
     output_folder="$(pwd)/01-demultiplexed/${a}"
