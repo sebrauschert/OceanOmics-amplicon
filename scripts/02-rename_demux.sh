@@ -47,6 +47,6 @@ for a in "${assay[@]}"
     # move the unnamed and unknowns into separate folders 
     mkdir -p ${ROOT_DIR}/01-demultiplexed/${a}/unknown ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
     mv ${ROOT_DIR}/01-demultiplexed/${a}/*unknown*.fq.gz ${ROOT_DIR}/01-demultiplexed/${a}/unknown
-    mv ${ROOT_DIR}/01-demultiplexed/${a}-* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
+    mv ${ROOT_DIR}/01-demultiplexed/${a}/${a}-* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
      
 done
