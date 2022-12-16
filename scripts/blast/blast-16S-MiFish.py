@@ -166,7 +166,7 @@ def process_blast_output(out_file, database):
                 taxa_list.append(tax)
 
             else:
-                tax = hit.split('|')[2].split('(')[0].strip()
+                tax = hit.split('|')[2].split('([')[0].strip()
                 taxa_list.append(tax)
 
         blast_mifish['taxa'] = taxa_list
