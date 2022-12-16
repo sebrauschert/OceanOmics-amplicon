@@ -17,7 +17,7 @@ do
 
         case "${flag}" in
             v) voyageID=${OPTARG};;
-            a) assay+=${OPTARG};;
+            a) assay+=("$OPTARG");;
             d) database=${OPTARG};;
             *) usage;;
         esac
