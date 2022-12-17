@@ -41,8 +41,8 @@ conda activate blast-2.12.0
 # Now we can use the LULU curated fasta file for the blastn input
 echo blasting ${voyageID} ${assay} ASVs
 
-blastn -db /staging/tools/databases/ncbi-nt/nt \
+blastn -db /data/tools/databases/ncbi-nt/nt \
        -query 04-LULU/LULU_curated_fasta_${voyageID}_${assay}.fa \
-       #-num_threads ${cores} \
+       -num_threads ${cores} \
        -outfmt "6 qseqid sseqid staxids sscinames scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp" \
        -html > 05-taxa/blast_out/${voyageID}_${assay}_nt.tsv

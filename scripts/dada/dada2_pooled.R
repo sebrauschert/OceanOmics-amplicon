@@ -49,8 +49,11 @@ dada2_pooled <- function(voyage = voyage,
   
   # check barcode lengths
   head(tags)
-  
-  tags <- subset(tags, assay==assay)
+
+  # We can't use assay for the variable name because the subset() function
+  # might get all rows where the assay column is equal to the assay column
+  a = assay
+  tags <- subset(tags, assay==a)
 
   len_barcode_Fw <- unique(nchar(tags$index_seq_Fw))
   len_barcode_Rv <- unique(nchar(tags$index_seq_Rv))
