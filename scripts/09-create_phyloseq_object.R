@@ -62,9 +62,24 @@ rownames(meta)   <- meta$`Sample ID`
 meta$`Sample ID` <- NULL
 
 # Prepare the taxa data
+taxa["LCA"] <- ""
 taxa %>%
-  select(ASV, domain, phylum, class, order, family, genus, species, Contam, ASV_sequence) -> taxa
+  select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
 taxa           <- as.data.frame(taxa)
+
+# We need to fill the LCA column starting with 'species', then 'genus', etc
+# until we reach a taxonomy level that isn't 'na' or 'dropped'
+levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
+for (row in 1:nrow(taxa)) {
+  LCA <- NA
+  level_ID <- 1
+  while(LCA == "dropped" | is.na(LCA)) {
+    LCA <- taxa[row, levels[level_ID]]
+    level_ID <- level_ID + 1
+  }
+  taxa[row, "LCA"] <- LCA
+}
+
 rownames(taxa) <- taxa$ASV
 taxa$ASV       <- NULL
 taxa           <- as.matrix(taxa)
@@ -116,12 +131,27 @@ if(option == "custom"){
   meta$`Sample ID` <- NULL
   
   # Prepare the taxa data
-  taxa %>%
-    select(ASV, domain, phylum, class, order, family, genus, species, Contam, ASV_sequence) -> taxa
-  taxa           <- as.data.frame(taxa)
-  rownames(taxa) <- taxa$ASV
-  taxa$ASV       <- NULL
-  taxa           <- as.matrix(taxa)
+  taxa["LCA"] <- ""
+taxa %>%
+  select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
+taxa           <- as.data.frame(taxa)
+
+# We need to fill the LCA column starting with 'species', then 'genus', etc
+# until we reach a taxonomy level that isn't 'na' or 'dropped'
+levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
+for (row in 1:nrow(taxa)) {
+  LCA <- NA
+  level_ID <- 1
+  while(LCA == "dropped" | is.na(LCA)) {
+    LCA <- taxa[row, levels[level_ID]]
+    level_ID <- level_ID + 1
+  }
+  taxa[row, "LCA"] <- LCA
+}
+
+rownames(taxa) <- taxa$ASV
+taxa$ASV       <- NULL
+taxa           <- as.matrix(taxa)
   
   # Prepare otu data
   otu           <- as.data.frame(otu)
