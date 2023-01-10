@@ -70,7 +70,7 @@ mamba env create -f env/blast-2.12.0.yml
 There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
 
 ```
-conda env create -f env/amplicon_environment.general.yml
+mamba env create -f env/amplicon_environment.general.yml
 ```
 
 ### Install `mmv`
@@ -151,20 +151,24 @@ The folder contains subfolders for all subsequent steps of the pipeline:
 
 ```
 .
-|--- 00-raw-data
-|    |--- indices
-|--- 01-QC
-|--- 02-demultiplexed
-|--- 03-dada2
-|    |--- QC_plots
-|    |--- tmpfiles 
-|    |--- errorModel
-|--- 04-taxa
-|    |--- blast_out
-|    |---LCA_out
-|--- 05-LULU
-|--- 06-report
-|--- scripts
+├── 00-raw-data
+│   └── indices
+├── 01-demultiplexed
+├── 02-QC
+├── 03-dada2
+│   ├── errorModel
+│   ├── QC_plots
+│   └── tmpfiles
+├── 04-LULU
+├── 05-taxa
+│   ├── blast_out
+│   └── LCA_out
+├── 06-report
+└── scripts
+    ├── blast
+    ├── dada
+    ├── LCA
+    └── LULU
 ```
 
 The pipeline expects fastq of your amplicon sequencing data in the 00-raw-data/ folder. The files should be named `*R1*fastq.gz` and `*R2*.fastq.gz`.
@@ -174,13 +178,30 @@ The pipeline expects fastq of your amplicon sequencing data in the 00-raw-data/ 
 Some amplicon data needs to be demultiplexed. We store indices for demultiplexing in a voyageID/assayID structure. For each voyage and each assay we need two files in `00-raw-data/indices`: `voyageID_assayID_Fw.fa` and `voyageID_assayID_Rv.fa`. Please add these manually.
 
 Then, to run the demultiplexing with those indices:
+
 ```
 conda activate amplicon
-bash scripts/01-demultiplex.sh Voyage1 assay1
+bash scripts/01-demultiplex.sh -v Voyage1 -a assay1
 ```
 
-This will run cutadapt with all fastq files in 00-raw-data and the indices for this particular voyage/assay combination. The demultiplexed reads will be in 02-demultiplexed/voyageID/assayID
+For example, for a voyage named ABV4 and 16S assay:
 
+```
+bash scripts/01-demultiplex.sh -v ABV4 -a 16S
+```
+
+This example would expect a file named `ABV4_16S_Fw.fa` and `ABV4_16S_Rv.fa` in 00-raw-data/indices containing those indices for demultiplexing, looking like this:
+
+```
+>16S-sample1
+CATGCCTA
+>16S-sample2
+TCGCCTTA
+```
+
+This example will also expect the raw fastq in 00-raw-data named like `*16S*fastq.gz*`.
+
+01-demultiplex.sh will run cutadapt with all fastq files in 00-raw-data and the indices for this particular voyage/assay combination. The demultiplexed reads will be in 02-demultiplexed/assayID/
 
 Now we need to rename the output files to correspond to their sample IDs.
 
