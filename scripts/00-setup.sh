@@ -92,7 +92,8 @@ cp -r ../OceanOmics-amplicon/scripts/* scripts
 
 # Finished
 #...............................................................................................
-echo "Finished setting up analysis directory!\n"
+echo "Finished setting up analysis directory!"
+echo
 echo "Directory name is $1"
 echo
 tree -d
