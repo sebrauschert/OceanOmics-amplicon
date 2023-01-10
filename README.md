@@ -51,14 +51,26 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `pytaxonkit`dependencies for the python script for the  16S and MiFish blast
 -  `blastn` taxonomic annotation of ASVs
 
-To create those environments, first install miniconda end then run the following:
+To create those environments, first install miniconda, use that to install mamba:
 
 ```
-conda env create -f env/renv_environment.yml
-conda env create -f env/amplicon_environment.yml
-conda env create -f env/taxonkit.yml
-conda env create -f env/pytaxonkit.yml
-conda env create -f env/blast-2.12.0.yml
+conda install -n base mamba
+```
+
+Then run the following:
+
+```
+mamba env create -f env/renv_environment.yml
+mamba env create -f env/amplicon_environment.yml
+mamba env create -f env/taxonkit.yml
+mamba env create -f env/pytaxonkit.yml
+mamba env create -f env/blast-2.12.0.yml
+```
+
+There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
+
+```
+conda env create -f env/amplicon_environment.general.yml
 ```
 
 ### Install `mmv`
