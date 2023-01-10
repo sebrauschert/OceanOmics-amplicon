@@ -45,7 +45,6 @@ To run this pipeline as smoothly as possible, please install `miniconda` on your
 
 This repository comes with a `env` folder, which allows to set up three different `conda` environments
 
-- `datalad` environment, to track data and analysis
 - `renv` for a version controlled `R` environment including the `renv` package
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
 - `taxonkit` for taxonomy-related tasks
@@ -55,18 +54,11 @@ This repository comes with a `env` folder, which allows to set up three differen
 To create those environments, first install miniconda end then run the following:
 
 ```
-conda env create -f env/datalad_environment.yml
 conda env create -f env/renv_environment.yml
 conda env create -f env/amplicon_environment.yml
 conda env create -f env/taxonkit.yml
 conda env create -f env/pytaxonkit.yml
 conda env create -f env/blast-2.12.0.yml
-```
-
-There are alternative yml files in the folder for 'general' environments outside of OceanOmics:
-
-```
-conda env create -f env/datalad_environment.general.yml
 ```
 
 ### Install `mmv`
@@ -90,7 +82,8 @@ cd ~/.taxonkit
 wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 tar xzvf taxdump.tar.gz
 ```
-It's about 500MB in size.
+
+The taxdump-DB is about 500MB in size so make sure you have that space available in your home-directory.
 
 It is possible to extract the data elsewhere and then give taxonkit the path. See the `--data-dir` flag in `computeLCA.py`.
 
@@ -135,14 +128,13 @@ cat *.fa > MiFishDB.fasta
 
 Firstly, download this GitHub repository to your local file system, and cd into the repository's folder.
 
-Then to set up the local datalad project:
+Then to set up the local folder-structure:
 
 ```
-conda activate datalad
 bash scripts/00-setup.sh myFirstProject
 ```
 
-This will create a new folder containing a datalad project. It will be named myFirstProject_Amplicon_YOURUSERNAME in the folder you're currently in.
+This will create a new folder containing subfolders for each step of the pipeline. The folder will be named myFirstProject_Amplicon_YOURUSERNAME in the folder you're currently in.
 The folder contains subfolders for all subsequent steps of the pipeline:
 
 ```
@@ -274,3 +266,4 @@ Jessica Pearce
 Sebastian Rauschert  
 Priscila Goncalves  
 Philipp Bayer
+Adam Bennett
