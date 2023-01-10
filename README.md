@@ -143,7 +143,7 @@ Firstly, download this GitHub repository to your local file system, and cd into 
 Then to set up the local folder-structure:
 
 ```
-bash scripts/00-setup.sh myFirstProject
+bash scripts/00-setup.sh -p myFirstProject
 ```
 
 This will create a new folder containing subfolders for each step of the pipeline. The folder will be named myFirstProject_Amplicon_YOURUSERNAME in the folder you're currently in.

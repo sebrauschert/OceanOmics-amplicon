@@ -23,6 +23,9 @@ do
 done
 if [ "${projectID}" == ""  ]; then usage; fi
 
+# from https://stackoverflow.com/a/246128
+# where does the current script live?
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Create a new directory based on input
 #...............................................................................................
@@ -30,7 +33,7 @@ mkdir ${projectID}_amplicon_analysis
 
 # Enter the folder and make it a datalad container
 cd ${projectID}_amplicon_analysis
-
+pwd
 echo 'Preparing data repository...'
 echo ''
 
@@ -85,16 +88,13 @@ echo "# Project:" >> README.md
 echo "# Analyst:" >> README.md
 echo "# Overview:" >> README.md
 
-
-# Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
-# get current folder
-cp -r ../OceanOmics-amplicon/scripts/* scripts
+cp -r ${SCRIPT_DIR}/* scripts
 
 # Finished
 #...............................................................................................
 echo "Finished setting up analysis directory!"
 echo
-echo "Directory name is $1"
+echo "Directory name is `pwd`"
 echo
 tree -d
 #...............................................................................................
