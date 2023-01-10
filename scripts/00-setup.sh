@@ -24,7 +24,8 @@ done
 if [ "${projectID}" == ""  ]; then usage; fi
 
 # from https://stackoverflow.com/a/246128
-# where does the current script live?
+# where does the setup script live?
+# need to know this for more robust copying of all scripts later in the script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Create a new directory based on input
@@ -56,7 +57,8 @@ mkdir -p 00-raw-data/indices \
       05-taxa/blast_out \
       05-taxa/LCA_out \
       06-report \
-      scripts
+      scripts \
+      logs
 
 # Place a README.md in every folder
 #...............................................................................................

@@ -2,6 +2,9 @@
 #set -u
 #set -o pipefail
 
+set -x
+exec 1>logs/01-demultiplex.log 2>&1
+
 # USAGE
 # bash 01-demultiplex.sh -v <project/voyage ID> \
 #                        -a <assay; use teh flag multiple timed for multiple assays, e.g. -a 16S -a MiFish> \

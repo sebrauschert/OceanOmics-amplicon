@@ -164,6 +164,7 @@ The folder contains subfolders for all subsequent steps of the pipeline:
 │   ├── blast_out
 │   └── LCA_out
 ├── 06-report
+├── logs
 └── scripts
     ├── blast
     ├── dada
@@ -172,6 +173,8 @@ The folder contains subfolders for all subsequent steps of the pipeline:
 ```
 
 The pipeline expects fastq of your amplicon sequencing data in the 00-raw-data/ folder. The files should be named `*R1*fastq.gz` and `*R2*.fastq.gz`.
+
+All output and error messages are logged to a file in the `logs/` folder named after the respective step.
 
 #### (optional) Demultiplexing
 
@@ -202,6 +205,8 @@ TCGCCTTA
 This example will also expect the raw fastq in 00-raw-data named like `*16S*fastq.gz*`.
 
 01-demultiplex.sh will run cutadapt with all fastq files in 00-raw-data and the indices for this particular voyage/assay combination. The demultiplexed reads will be in 02-demultiplexed/assayID/
+
+Check the log file named logs/01-demultiplex.log to see if any errors or warnings occurred. 
 
 Now we need to rename the output files to correspond to their sample IDs.
 
