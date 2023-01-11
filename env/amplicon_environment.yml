@@ -6,7 +6,7 @@ channels:
 dependencies:
   - python=3.10
   - _openmp_mutex=4.5=1_gnu
-    #- cutadapt=4.1=py310h1425a21_1
+  - cutadapt=4.1=py310h1425a21_1
   - fastqc=0.11.9=hdfd78af_1
   - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0
   - fontconfig=2.13.1=h6c09931_0
