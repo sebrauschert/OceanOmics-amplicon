@@ -30,6 +30,10 @@ if [ "${database}" == ""  ]; then usage; fi
 eval "$(conda shell.bash hook)"
 conda activate pytaxonkit
 
+# log the commands
+set -x
+exec 1>logs/07-run_LCA.log 2>&1
+
 if [ "$database" == "nt" ];
 then
 
@@ -65,3 +69,7 @@ for a in ${assay[@]}
   done
 
 fi
+
+# clean up intermediate files
+rm interMediate_res.tab
+find . -maxdepth 1 -mindepth 1 -name '*taxdump' -type d -exec rm -r {} \;
