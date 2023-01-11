@@ -270,6 +270,8 @@ conda activate amplicon
 bash scripts/06-run_blast.sh -v Voyage1 -a Assay1 -d nt -c 12
 ```
 
+This script generates three log-files: one for the main run_blast.sh script in logs/06-run_blast.log, one detailing the blast database for reproducibility reasons in 06-run_blast_nt_database_information.log, and one detailing the actual blastn run in logs/06-run_blast.nt.log
+
 ##### (optional) Taxonomic assignment via blastn: 16S and MiFish database
 
 We can use a custom 16S or MiFish database, as well. All we need to change is the d flag. The script will assume that the name of the assay (here Assay1) is also the name of the blast database.
@@ -326,6 +328,7 @@ You can load that object into R:
 ```
 
 It should print something like:
+
 ```
 phyloseq-class experiment-level object
 otu_table()   OTU Table:         [ 531 taxa and 203 samples ]
