@@ -19,11 +19,11 @@ The scripts contained herein are:
 03-seqkit_stats.sh                     - to create read statistics for QC checks of the demultiplexed reads
 04-DADA2.R                             - to trim the reads and create an amplicon sequencing variant table; this can be executed in pooled, site specific and fixed error modes
 05-run_LULU.sh                         - LULU is a tool to perform post-clustering curation of DNA amplicon data; also creates the final phyloseq object 
-06-run_blast.sh                        - to query the NCBI nt and taxa database
+06-run_blast.sh                        - to query the NCBI nt and taxa database using BLAST
+07.1-LCA_filter_nt_only.R	       - to remove BLAST hits in the nt database where the deposited species is very vague
 07-run_LCA.sh                          - to retrieve the lowest common ancestor for the 16S and MiFish blast results
 08-Decontam.R                          - sample decontamination; currently not automated
 09-create_phyloseq_object.R            - create the phyloseq R package object for ease of analysis
-LCA_filter_nt_only.R                   - filter blast nt results 
 Reorganise.sh                          - for site specific analysis: organise samples by site
 blast-16S-MiFish.py                    - to query a custom 16S fish database and the MiFish database from here: http://mitofish.aori.u-tokyo.ac.jp/download.html
 ecology_plots.R                        - phyloseq based ecology plots for initial alpha and beta diversity 
@@ -31,15 +31,16 @@ run_blastnt.sh                         - blast against NCBI nt database
 
 LULU                                   - all functions required for LULU: 01-get_lineage.sh, 02-merge_lineage_with_LCA.R, 03-lulu_create_match_list.sh, 04-LULU.R and 05-create_phyloseq_object.R
 dada                                   - three scripts: dada2_pooled.R, dada2_site_error_fixed.R and dada2_site_spec_error.R; called by the 04-DADA2.R code
-LCA                                    - LCA scripts and dependencies from eDNAflow pipeline 
+LCA                                    - LCA scripts and dependencies from [eDNAflow](https://github.com/mahsa-mousavi/eDNAFlow) pipeline 
 ```
 
 ## Dependencies
 
 ### Install `miniconda`
 
-To run this pipeline as smoothly as possible, please install `miniconda` on your system, as per the instructions [here](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html) 
+To run this pipeline as smoothly as possible, please install `miniconda` on your system, as per the instructions [here](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html). To speed up the installation process we also install [mamba](https://mamba.readthedocs.io/en/latest/installation.html). 
 
+You can install miniconda and mamba at the same time by installing [mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 
 ### `conda` environments
 
@@ -48,16 +49,10 @@ This repository comes with a `env` folder, which allows to set up three differen
 - `renv` for a version controlled `R` environment including the `renv` package
 - `amplicon` for all utilities required, e.g. `cutadapt`and `seqkit`
 - `taxonkit` for taxonomy-related tasks
-- `pytaxonkit`dependencies for the python script for the  16S and MiFish blast
--  `blastn` taxonomic annotation of ASVs
+- `pytaxonkit`dependencies for the python script for the 16S and MiFish blast
+- `blastn` taxonomic annotation of ASVs
 
-To create those environments, first install miniconda, use that to install mamba:
-
-```
-conda install -n base mamba
-```
-
-Then run the following:
+To create those environments, first install miniconda, use that to install mamba, then run the following:
 
 ```
 mamba env create -f env/renv_environment.yml
@@ -184,7 +179,7 @@ Then, to run the demultiplexing with those indices:
 
 ```
 conda activate amplicon
-bash scripts/01-demultiplex.sh -v Voyage1 -a assay1
+bash scripts/01-demultiplex.sh -v Voyage1 -a Assay1
 ```
 
 For example, for a voyage named ABV4 and 16S assay:
@@ -212,12 +207,12 @@ Now we need to rename the output files to correspond to their sample IDs.
 
 ```
 conda activate amplicon
-bash scripts/02-rename_demux.sh -v Voyage1 -a assay1
+bash scripts/02-rename_demux.sh -v Voyage1 -a Assay1
 ```
 
 For each voyage's assay this script will rename the demultiplexed fastq files according to their sample ID.
 
-02-rename_demux.sh expects a txt file, space-delimited, in 00-raw-data/indices/ which is named `Sample_name_rename_pattern_{Voyage1}_{assay1}.txt` with the 'raw' filenames and the prettified filenames with sample IDs, for example:
+02-rename_demux.sh expects a txt file, space-delimited, in 00-raw-data/indices/ which is named `Sample_name_rename_pattern_{Voyage1}_{Assay1}.txt` with the 'raw' filenames and the prettified filenames with sample IDs, for example:
 
 ```
 16S-lane1-16S-L01.R[12].fq.gz Voyage1_Sample7_day4.#1.fq
@@ -228,7 +223,7 @@ You can calculate statistics for each assay using the seqkit_stats script:
 
 ```
 conda activate amplicon
-bash scripts/03-seqkit_stats.sh -v Voyage1 -a assay1
+bash scripts/03-seqkit_stats.sh -v Voyage1 -a Assay1
 ```
 
 This will generate a txt file of QC statistics for each assay and voyage in the folder 02-QC/
@@ -243,10 +238,11 @@ We run the R-script DADA2 to assemble amplicon sequence variants (ASVs) using [D
 conda activate renv
 Rscript scripts/04-DADA2.R --voyage <VOYAGE_ID> \
                            --assay <ASSAY_ID> \
-                           --option <pooled, site or fixed>
+                           --option <pooled, site or fixed> \
+                           > logs/04-DADA2.log 2>&1
 ```
 
-We recommend to use `--option pooled` for the highest number of ASVs. See [this page](https://benjjneb.github.io/dada2/pseudo.html) with a longer discussion.
+We recommend to use `--option pooled` for the highest number of ASVs and detected species. See [this page](https://benjjneb.github.io/dada2/pseudo.html) with a longer discussion.
 
 The final result are quality plots before and after read quality trimming, dereplicated reads, merged paired end reads with no chimeras, and .Rdata files for each step in case on step crashes. The end result is an amplicon sequence variant (ASV) table and a fasta of the ASV sequences. 
 
@@ -254,62 +250,94 @@ All results will be in 03-dada2/
 
 #### LULU: post-clustering curation of DNA amplicon data
 
-We use [LULU](https://github.com/tobiasgf/lulu) to improve the quality of the assembled ASVs. 
+We use [LULU](https://github.com/tobiasgf/lulu) to curate the assembled ASVs. 
 
 ``` 
 conda activate renv
-bash scripts/05-run_LULU.sh -v Voyage1 -a assay1
+bash scripts/05-run_LULU.sh -v Voyage1 -a Assay1
 ```
+
+The final results are in 04-LULU and are curated ASVs in a fasta file along with LULU count tables and objects.
 
 #### Taxonomic assignment via blastn
 
-This step uses blastn to find taxonomic hits for the ASV fasta sequences.
+This step uses blastn to find taxonomic hits for the curated ASV fasta sequences.
 
-This needs to be run for each voyage and each assay, here an example requesting 12 CPUs and writing to the output file 04-taxa/tabular_output_voyage1assay1.tsv
+Here is an example requesting 12 CPUs and writing final tsv-files in 05-taxa/. Raw BLAST results are in 05-taxa/blast_out/. By default, this script requests 50 CPUs. Multiple assays can be run at the same time. Here we use the NCBI NT database (-d nt).
 
 ```
 conda activate amplicon
-bash scripts/05-blastn.sh 03-dada2/voyage1_assay1.fa 12 voyage1assay1
+bash scripts/06-run_blast.sh -v Voyage1 -a Assay1 -d nt -c 12
 ```
 
-#### Taxonomic assignment via blastn: 16S and MiFish database
-For this we need to activate the `pytaxonkit` environment and execute the script `06-blast-16S-MiFish.py`.
+##### (optional) Taxonomic assignment via blastn: 16S and MiFish database
 
-``` 
-conda activate pytaxonkit
-bash scripts/06-blast-16S-MiFish.py \
-          --dada2_file [Path to the dada2 fasta ASV sequence file] \
-          --out_path [path to the folder where the output shall be saved; default current working directory] \
-          --database [either 16S or MiFish]
-```
-
-#### Finding the last common ancestor (LCA) for each query ASV
-
-Now we try to find the 'best' hit for each query by merging all hits into their LCA species.
-
-First, we filter the blast tabular output:
+We can use a custom 16S or MiFish database, as well. All we need to change is the d flag. The script will assume that the name of the assay (here Assay1) is also the name of the blast database.
 
 ```
-awk '{if ($7 > 90) print}' all_results.tsv > all_results.90perc.tsv
-grep -v -e uncultured -e Uncultured -e chloroplast -e Unidentified -e unidentified all_results.90perc.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv
+conda activate amplicon
+bash scripts/06-run_blast.sh -v Voyage1 -a Assay1 -d custom -c 12
 ```
 
-Then, to make a table of the lineage and hit for each query's LCA:
+#### Finding the lowest common ancestor (LCA) for each query ASV
+
+Now we try to find the 'best' hit for each query by merging all hits into their LCA species after filtering of blast hits: at least 98% identity and 100% query overlap.
 
 ```
-conda activate taxonkit
-python computeLCA.py all_results.90perc.noUnculturedUnidentifiedChloroplast.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv
+bash scripts/07-run_LCA.sh -v Voyage1 -a Assay1 -db nt
 ```
 
-Then we can search for fish in these LCAs.
+When using NCBI-NT as the subject database, we use a helper script that removes sequences deposited in NCBI-NT with a vague taxonomic assignment.
 
 ```
-python findFish.py all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.tsv > all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
-# give me the number of hits
-wc -l all_results.90perc.noUnculturedUnidentifiedChloroplast.LCAs.FishOnly.tsv
+conda activate renv
+Rscript scripts/07.1-LCA_filter_nt_only.R -v Voyage1 -a Assay1 > logs/07.1-LCA_filter.log 2>&1
 ```
 
-### `Nextflow`
+The final LCAs are in the folder 05-taxa/LCA_out. There are two LCA tables per assay - one for the filtered, and one for the unfiltered ASVs.
+
+#### Decontaminating the LCA table
+
+We assume that ASVs that appear in water or bleach controls are contaminations, and mark them as such in a new column 'Contamination'.
+
+```
+conda activate renv
+Rscript scripts/08-Decontam.R -v Voyage1 -a Assay1 > logs/08-Decontam.log 2>&1
+```
+
+This script is highly dependent on internal OceanOmics naming and is not recommended to be run by others.
+
+#### Generating a final phyloseq object
+
+We collate ASV information and taxonimic information into a phyloseq object for downstream analyses.
+
+```
+conda activate renv
+Rscript scripts/09-create_phyloseq_object.R -v ABV4 -a 16S -o nt > logs/09-create_phyloseq_object.log 2>&1
+```
+
+This will generate a final phyloseq object in 06-report/ named like Voyage1_Assay1_phyloseq_nt.rds
+
+You can load that object into R:
+
+```
+> library(phyloseq)
+> readRDS('06-report/Voyage1_Assay1_phyloseq_nt.rds')
+```
+
+It should print something like:
+```
+phyloseq-class experiment-level object
+otu_table()   OTU Table:         [ 531 taxa and 203 samples ]
+sample_data() Sample Data:       [ 203 samples by 5 sample variables ]
+tax_table()   Taxonomy Table:    [ 531 taxa by 10 taxonomic ranks ]
+```
+
+You can then follow any phyloseq tutorial, see the [phyloseq homepage](https://joey711.github.io/phyloseq)
+
+### Docker/Singularity and Nextflow
+
+We are currently working on Docker/Singularity and Nextflow implementations of this pipeline.
 
 ## Authors and contributors
 Jessica Pearce  
