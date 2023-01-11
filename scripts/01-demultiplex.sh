@@ -2,6 +2,7 @@
 #set -u
 #set -o pipefail
 
+
 # USAGE
 # bash 01-demultiplex.sh -v <project/voyage ID> \
 #                        -a <assay; use teh flag multiple timed for multiple assays, e.g. -a 16S -a MiFish> \
@@ -37,6 +38,9 @@ ulimit -S -n 4096
 # load amplicon environment
 eval "$(conda shell.bash hook)"
 conda activate cutadapt-v4.1
+
+set -x
+exec 1>logs/01-demultiplex.log 2>&1
 
 for a in "${assay[@]}"
 do

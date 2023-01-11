@@ -30,6 +30,9 @@ if [ "${voyageID}" == ""  ]; then usage; fi
 #if [ "${assay}" == ""  ]; then usage; fi
 if [ "${database}" == ""  ]; then usage; fi
 
+# log the commands
+set -x
+exec 1>logs/06-run_blast.log 2>&1
 
 # Define voyage ID and database option
 
