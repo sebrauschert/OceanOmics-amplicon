@@ -212,25 +212,32 @@ Now we need to rename the output files to correspond to their sample IDs.
 
 ```
 conda activate amplicon
-bash scripts/02-rename_demux.sh
+bash scripts/02-rename_demux.sh -v Voyage1 -a assay1
 ```
 
 For each voyage's assay this script will rename the demultiplexed fastq files according to their sample ID.
+
+02-rename_demux.sh expects a txt file, space-delimited, in 00-raw-data/indices/ which is named `Sample_name_rename_pattern_{Voyage1}_{assay1}.txt` with the 'raw' filenames and the prettified filenames with sample IDs, for example:
+
+```
+16S-lane1-16S-L01.R[12].fq.gz Voyage1_Sample7_day4.#1.fq
+16S-lane2-16S-L01.R[12].fq.gz Voyage1_Sample9_day14.#1.fq
+```
 
 You can calculate statistics for each assay using the seqkit_stats script:
 
 ```
 conda activate amplicon
-bash scripts/03-seqkit_stats.sh
+bash scripts/03-seqkit_stats.sh -v Voyage1 -a assay1
 ```
 
-This will generate a txt file of QC statistics for each assay and voyage in the folder 01-QC/
+This will generate a txt file of QC statistics for each assay and voyage in the folder 02-QC/
 
 
 #### Amplicon sequence variants via DADA2 
 
 
-We run the R-script DADA2 to calculate amplicon sequence variants (ASVs).
+We run the R-script DADA2 to assemble amplicon sequence variants (ASVs) using [DADA2](https://benjjneb.github.io/dada2/index.html).
 
 ```
 conda activate renv
@@ -239,14 +246,19 @@ Rscript scripts/04-DADA2.R --voyage <VOYAGE_ID> \
                            --option <pooled, site or fixed>
 ```
 
+We recommend to use `--option pooled` for the highest number of ASVs. See [this page](https://benjjneb.github.io/dada2/pseudo.html) with a longer discussion.
+
 The final result are quality plots before and after read quality trimming, dereplicated reads, merged paired end reads with no chimeras, and .Rdata files for each step in case on step crashes. The end result is an amplicon sequence variant (ASV) table and a fasta of the ASV sequences. 
 
 All results will be in 03-dada2/
 
 #### LULU: post-clustering curation of DNA amplicon data
 
-``` 
+We use [LULU](https://github.com/tobiasgf/lulu) to improve the quality of the assembled ASVs. 
 
+``` 
+conda activate renv
+bash scripts/05-run_LULU.sh -v Voyage1 -a assay1
 ```
 
 #### Taxonomic assignment via blastn

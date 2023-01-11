@@ -22,11 +22,14 @@ done
 if [ "${voyageID}" == ""  ]; then usage; fi
 #if [ "${assay}" == ""  ]; then usage; fi
 
+# log the commands
+set -x
+exec 1>logs/02-rename_demux.log 2>&1
+
 # Rename all demultiplexed files to the sample names
 
 ROOT_DIR=$(pwd)
 
-echo ${voyageID}
 
 # User feedback
 echo "Main directory is:"
@@ -36,6 +39,11 @@ echo
 # Loop over assays and voyages for rename
 for a in "${assay[@]}"
     do
+    # get around small bug where a is empty, leading to nonsense commands
+    if [[ -z "${a}" ]];
+    then
+       continue
+    fi
     
     cd ${ROOT_DIR}/01-demultiplexed/${a}
     echo $(pwd)
