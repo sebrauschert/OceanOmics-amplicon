@@ -79,21 +79,6 @@ sudo apt-get update
 sudo apt-get install mmv
 ```
 
-### Install `taxonkit`
-
-Following the above conda instructions, we now have a conda environment called `taxonkit`. taxonkit expects the NCBI taxdump in ~/.taxonkit:
-TODO: potentially removing this dependency and use pytaxonkit exclusively?
-```
-mkdir ~/.taxonkit
-cd ~/.taxonkit
-wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
-tar xzvf taxdump.tar.gz
-```
-
-The taxdump-DB is about 500MB in size so make sure you have that space available in your home-directory.
-
-It is possible to extract the data elsewhere and then give taxonkit the path. See the `--data-dir` flag in `computeLCA.py`.
-
 ## Databases
 Include or script to download? 16S needs Mike Bunce permission.
 
@@ -199,7 +184,7 @@ TCGCCTTA
 
 This example will also expect the raw fastq in 00-raw-data named like `*16S*fastq.gz*`.
 
-01-demultiplex.sh will run cutadapt with all fastq files in 00-raw-data and the indices for this particular voyage/assay combination. The demultiplexed reads will be in 02-demultiplexed/assayID/
+`01-demultiplex.sh` will run cutadapt with all fastq files in `00-raw-data/` and the indices for this particular voyage/assay combination. The demultiplexed reads will be in `02-demultiplexed/assayID/`.
 
 Check the log file named logs/01-demultiplex.log to see if any errors or warnings occurred. 
 
@@ -212,22 +197,23 @@ bash scripts/02-rename_demux.sh -v Voyage1 -a Assay1
 
 For each voyage's assay this script will rename the demultiplexed fastq files according to their sample ID.
 
-02-rename_demux.sh expects a txt file, space-delimited, in 00-raw-data/indices/ which is named `Sample_name_rename_pattern_{Voyage1}_{Assay1}.txt` with the 'raw' filenames and the prettified filenames with sample IDs, for example:
+`02-rename_demux.sh` expects a txt file, space-delimited, in `00-raw-data/indices/` which is named `Sample_name_rename_pattern_{Voyage1}_{Assay1}.txt` with the 'raw' filenames and the prettified filenames with sample IDs, for example:
 
 ```
 16S-lane1-16S-L01.R[12].fq.gz Voyage1_Sample7_day4.#1.fq
 16S-lane2-16S-L01.R[12].fq.gz Voyage1_Sample9_day14.#1.fq
 ```
 
-You can calculate statistics for each assay using the seqkit_stats script:
+#### (optional) Demultiplexing statistics
+
+You can calculate statistics for each assay using the `03-seqkit_stats.sh` script:
 
 ```
 conda activate amplicon
 bash scripts/03-seqkit_stats.sh -v Voyage1 -a Assay1
 ```
 
-This will generate a txt file of QC statistics for each assay and voyage in the folder 02-QC/
-
+This will generate a txt file of QC statistics for each assay and voyage in the folder `02-QC/`.
 
 #### Amplicon sequence variants via DADA2 
 
@@ -246,7 +232,7 @@ We recommend to use `--option pooled` for the highest number of ASVs and detecte
 
 The final result are quality plots before and after read quality trimming, dereplicated reads, merged paired end reads with no chimeras, and .Rdata files for each step in case on step crashes. The end result is an amplicon sequence variant (ASV) table and a fasta of the ASV sequences. 
 
-All results will be in 03-dada2/
+All results will be in `03-dada2/`.
 
 #### LULU: post-clustering curation of DNA amplicon data
 
@@ -263,14 +249,14 @@ The final results are in 04-LULU and are curated ASVs in a fasta file along with
 
 This step uses blastn to find taxonomic hits for the curated ASV fasta sequences.
 
-Here is an example requesting 12 CPUs and writing final tsv-files in 05-taxa/. Raw BLAST results are in 05-taxa/blast_out/. By default, this script requests 50 CPUs. Multiple assays can be run at the same time. Here we use the NCBI NT database (-d nt).
+Here is an example requesting 12 CPUs and writing final tsv-files in `05-taxa/`. Raw BLAST results are in `05-taxa/blast_out/`. By default, this script requests 50 CPUs. Multiple assays can be run at the same time. Here we use the NCBI NT database (-d nt).
 
 ```
 conda activate amplicon
 bash scripts/06-run_blast.sh -v Voyage1 -a Assay1 -d nt -c 12
 ```
 
-This script generates three log-files: one for the main run_blast.sh script in logs/06-run_blast.log, one detailing the blast database for reproducibility reasons in 06-run_blast_nt_database_information.log, and one detailing the actual blastn run in logs/06-run_blast.nt.log
+This script generates three log-files: one for the main script in `logs/06-run_blast.log`, one detailing the blast database for reproducibility reasons in `06-run_blast_nt_database_information.log`, and one detailing the actual blastn run depending on the user database choice in `logs/06-run_blast.nt.log`.
 
 ##### (optional) Taxonomic assignment via blastn: 16S and MiFish database
 
@@ -289,6 +275,8 @@ Now we try to find the 'best' hit for each query by merging all hits into their 
 bash scripts/07-run_LCA.sh -v Voyage1 -a Assay1 -db nt
 ```
 
+`logs/07-run_LCA.log` contains the main run's output. Since this script downloads the taxonomy database from NCBI we retain this database for reproducibility reasons, it is stored in a folder starting with today's date and ending in 'taxdump'. There are two logs detailing this database: line-counts are in `logs/07-run_LCA_taxdump_linecounts.log` and md5sums are in `logs/07-run_LCA_taxdump_md5sums.log`.
+
 When using NCBI-NT as the subject database, we use a helper script that removes sequences deposited in NCBI-NT with a vague taxonomic assignment.
 
 ```
@@ -296,7 +284,7 @@ conda activate renv
 Rscript scripts/07.1-LCA_filter_nt_only.R -v Voyage1 -a Assay1 > logs/07.1-LCA_filter.log 2>&1
 ```
 
-The final LCAs are in the folder 05-taxa/LCA_out. There are two LCA tables per assay - one for the filtered, and one for the unfiltered ASVs.
+The final LCAs are in the folder `05-taxa/LCA_out`. There are two LCA tables per assay - one for the filtered, and one for the unfiltered ASVs.
 
 #### Decontaminating the LCA table
 
@@ -318,7 +306,7 @@ conda activate renv
 Rscript scripts/09-create_phyloseq_object.R -v ABV4 -a 16S -o nt > logs/09-create_phyloseq_object.log 2>&1
 ```
 
-This will generate a final phyloseq object in 06-report/ named like Voyage1_Assay1_phyloseq_nt.rds
+This will generate a final phyloseq object in `06-report/` named like `Voyage1_Assay1_phyloseq_nt.rds`.
 
 You can load that object into R:
 
@@ -346,5 +334,6 @@ We are currently working on Docker/Singularity and Nextflow implementations of t
 Jessica Pearce  
 Sebastian Rauschert  
 Priscila Goncalves  
-Philipp Bayer
+Philipp Bayer  
 Adam Bennett
+

@@ -69,7 +69,3 @@ for a in ${assay[@]}
   done
 
 fi
-
-# clean up intermediate files
-rm interMediate_res.tab
-find . -maxdepth 1 -mindepth 1 -name '*taxdump' -type d -exec rm -r {} \;

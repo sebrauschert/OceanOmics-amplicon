@@ -6,6 +6,8 @@
 # Then it will link it to an NCBI taxonomy file and Zotu/Otu table file
 
 # By Mahsa Mousavi-Derazmahalleh ; Python V3
+# Slightly amended by Sebastian Rauschert and Philipp Bayer to retain downloaded taxdump for
+# reproducibility purposes
 
 import subprocess
 import sys
@@ -14,16 +16,20 @@ import working_function as wf
 
 # define commands for downloading taxonomy database from NCBI and saving it in a folder with the current date
 # if folder exists, it overwrites it
+
+# also keep track of taxdump metadata in the logs folder
 getLineage = '''
 d="$(date +"%d-%m-%Y")" 
+rm -rf ${d}_taxdump
 mkdir ${d}_taxdump
 cd ${d}_taxdump 
 wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.zip 
 unzip new_taxdump.zip 
+wc -l *dmp > ../logs/07-run_LCA_taxdump_linecounts.log
+md5sum *dmp > ../logs/07-run_LCA_taxdump_md5sums.log
 mv rankedlineage.dmp ..  
 cd .. 
 tr -d "\t" < rankedlineage.dmp > rankedlineage_tabRemoved.dmp 
-rm -f ${d}_taxdump/*
 rm -f rankedlineage.dmp
 '''
 
@@ -143,8 +149,8 @@ sys.stdout = def_output
 
 # cleaning up temporary files
 cmd = '''
-d="$(date +"%d-%m-%Y")"
-mv rankedlineage_tabRemoved.dmp ${d}_taxdump
+rm rankedlineage_tabRemoved.dmp
+rm interMediate_res.tab
 '''
 process = subprocess.Popen('/bin/bash', stdin=subprocess.PIPE,
                            stdout=subprocess.PIPE, universal_newlines=True)
