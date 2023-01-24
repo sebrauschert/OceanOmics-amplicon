@@ -37,7 +37,7 @@ ulimit -S -n 4096
 
 # load amplicon environment
 eval "$(conda shell.bash hook)"
-conda activate cutadapt-v4.1
+conda activate amplicon
 
 set -x
 exec 1>logs/01-demultiplex.log 2>&1
