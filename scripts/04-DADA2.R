@@ -8,6 +8,18 @@ suppressPackageStartupMessages(library(RColorBrewer))
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(optparse))
 
+# this is necessary for the docker version of this script
+if(Sys.getenv("CODE") == ""){
+
+  next
+
+}else{
+
+  setwd(Sys.getenv("CODE"))
+
+}
+
+
 # All functions for dada2 are in a seperate script now. 
 # Seperate functions for the pooled, the site specific and 
 # the fixed error rate dada2 analysis
@@ -40,19 +52,19 @@ cores  <- opt$cores
 # Run the analysis by executing the function above
 if(option == "pooled"){
   
-  source("scripts/dada/dada2_pooled.R")
+  source("dada/dada2_pooled.R")
   
 }
 
 if(option == "site"){
   
-  source("scripts/dada/dada2_site_spec_error.R")
+  source("./scripts/dada/dada2_site_spec_error.R")
   
 }
 
 if(option == "fixed"){
   
-  source("scripts/dada/dada2_site_error_fixed.R")
+  source("./scripts/dada/dada2_site_error_fixed.R")
   
   
 }

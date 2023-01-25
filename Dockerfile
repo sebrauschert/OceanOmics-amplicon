@@ -83,7 +83,7 @@ RUN chmod +x /opt/amplicon_pipeline/00-setup.sh && \
     chmod +x /opt/amplicon_pipeline/01-demultiplex.sh && \
     chmod +x /opt/amplicon_pipeline/02-rename_demux.sh && \
     chmod +x /opt/amplicon_pipeline/03-seqkit_stats.sh  && \
-    chmod +x /opt/amplicon_pipeline/04-DADA2.R  && \
+    chmod +x /opt/amplicon_pipeline/DADA2.sh  && \
     chmod +x /opt/amplicon_pipeline/05-run_LULU.sh  && \
     chmod +x /opt/amplicon_pipeline/06-run_blast.sh  && \
     chmod +x /opt/amplicon_pipeline/07-run_LCA.sh  && \
@@ -113,9 +113,11 @@ RUN mkdir -p /mnt/scratch
 # Making sure that docker starts in the working directory that we mount to the current working directory
 # so that we do not need to include an additional path into the scripts. That way, we can add the Dockerfile to the
 # pipeline GitHub without modifying the scripts itself, to build the container new every time we update the repo
+#
+# Therefore, we also set CODE and ANALYSIS environment variables, to make sure the Rscripts are working
 #==================================================================================================================
 
-ENV PATH=/mnt/scratch:$PATH
-ARG PATH=/mnt/scratch:$PATH
+ENV CODE=/opt/amplicon_pipeline/
+ENV ANALYSIS=/mnt/scratch/
 
 WORKDIR /mnt/scratch

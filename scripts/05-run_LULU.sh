@@ -28,9 +28,9 @@ for a in "${assay[@]}"
         conda activate pytaxonkit
         echo  "Running LULU on ${voyageID} ${a}"
         
-        bash scripts/LULU/01-lulu_create_match_list.sh -v ${voyageID} -a ${a}
+        bash LULU/01-lulu_create_match_list.sh -v ${voyageID} -a ${a}
         
-        Rscript scripts/LULU/02-LULU.R -v ${voyageID} -a ${a}
+        Rscript LULU/02-LULU.R -v ${voyageID} -a ${a}
 
         # Activate amplicon conda environent for seqkit
         eval "$(conda shell.bash hook)"

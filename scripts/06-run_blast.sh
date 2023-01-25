@@ -41,7 +41,7 @@ then
 
 for a in ${assay[@]}
   do
-  bash scripts/blast/run_blastnt.sh -v ${voyageID} -a ${a} -c ${cores}
+  bash ./scripts/blast/run_blastnt.sh -v ${voyageID} -a ${a} -c ${cores}
   done
 
 fi
@@ -55,7 +55,7 @@ conda activate pytaxonkit
 
 for a in ${assay[@]}
   do
-  python scripts/blast/blast-16S-MiFish.py \
+  python ./scripts/blast/blast-16S-MiFish.py \
          --dada2_file 04-LULU/LULU_curated_fasta_${voyageID}_${a}.fa \
          --out_path 05-taxa/blast_out/${voyageID}_ \
          --database ${a}

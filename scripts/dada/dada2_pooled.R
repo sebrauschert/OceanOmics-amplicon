@@ -4,6 +4,16 @@
 # - Pooled DADA2
 #...........................................
 
+# Set working directory for this script
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") == ""){
+  next
+
+}else{
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
 
 
 # DADA2 pipeline as function
