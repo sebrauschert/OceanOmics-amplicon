@@ -101,8 +101,8 @@ RUN chmod +x /opt/amplicon_pipeline/00-setup.sh && \
     chmod +x /opt/amplicon_pipeline/LCA/runAssign_collapsedTaxonomy.py && \
     chmod +x /opt/amplicon_pipeline/LCA/working_function.py && \
     chmod +x /opt/amplicon_pipeline/LULU/01-lulu_create_match_list.sh && \
-    chmod +x /opt/amplicon_pipeline/LULU/02-LULU.R \
-    chmod +x /opt/amplicon_pipeline/download_nt.sh \
+    chmod +x /opt/amplicon_pipeline/LULU/02-LULU.R && \
+    chmod +x /opt/amplicon_pipeline/download_nt.sh && \
     chmod +x /opt/amplicon_pipeline/download_mitofish.sh
 
 
