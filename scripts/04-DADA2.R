@@ -9,11 +9,7 @@ suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(optparse))
 
 # this is necessary for the docker version of this script
-if(Sys.getenv("CODE") == ""){
-
-  next
-
-}else{
+if(Sys.getenv("CODE") != ""){
 
   setwd(Sys.getenv("CODE"))
 

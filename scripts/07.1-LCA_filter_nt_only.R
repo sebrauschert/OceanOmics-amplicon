@@ -11,11 +11,7 @@ suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(optparse))
 
 # this is necessary for the docker version of this script
-if(Sys.getenv("ANALYSIS") == ""){
-
-  next
-
-}else{
+if(Sys.getenv("ANALYSIS") != ""){
 
   setwd(Sys.getenv("ANALYSIS"))
 

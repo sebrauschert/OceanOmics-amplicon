@@ -9,13 +9,9 @@ library(getopt)
 
 # Set working directory for this script
 # this is necessary for the docker version of this script
-if(Sys.getenv("ANALYSIS") == ""){
+if(Sys.getenv("ANALYSIS") != ""){
 
-  next
-
-}else{
-
-  setwd(Sys.getenv("ANALYSIbS"))
+  setwd(Sys.getenv("ANALYSIS"))
 
 }
 
