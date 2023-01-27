@@ -1,6 +1,6 @@
 FROM rocker/tidyverse:4
 LABEL maintainer="Seb Rauschert <srauschert@minderoo.org>"
-LABEL description="This Dockerfile sets up the Minderoo OceanOmics amplicon pipeline for marien fish eDNA analysis"
+LABEL description="This Dockerfile sets up the Minderoo OceanOmics amplicon pipeline for marine fish eDNA analysis"
 MAINTAINER Seb Rauschert <srauschert@minderoo.org>
 
 
