@@ -48,6 +48,13 @@ blastdbcmd -info -db /data/tools/databases/ncbi-nt/nt > logs/06-run_blast_nt_dat
 # Now we can use the LULU curated fasta file for the blastn input
 echo blasting ${voyageID} ${assay} ASVs
 
+# For the containerised version: if the ANALYSIS path is present,
+# change to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+   then cd $ANALYSIS;
+fi
+
+
 blastn -db /data/tools/databases/ncbi-nt/nt \
        -query 04-LULU/LULU_curated_fasta_${voyageID}_${assay}.fa \
        -num_threads ${cores} \
