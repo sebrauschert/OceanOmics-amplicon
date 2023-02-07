@@ -41,7 +41,8 @@ opt <- opt$option
 cores  <- opt$cores
 
 # Making sure that we keep the booleans when required and a character for the pseudo option
-option <- ifelese(opt %in% "TRUE", TRUE, ifelse(opt %in% "FALSE", FALSE, "pseudo"))
+option <- ifelse(opt %in% "TRUE", TRUE,
+          ifelse(opt %in% "FALSE", FALSE, "pseudo"))
 
 #......................................................................................
 # WE CALL THE SCRIPT WE NEED BASED ON THE OPTIONS INPUT
