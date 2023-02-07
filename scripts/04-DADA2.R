@@ -28,7 +28,7 @@ option_list = list(
               help="voyage identifier code"),
   make_option(c("-a", "--assay"), action="store", default=NA, type='character',
               help="assay, e.g. '16S' or 'MiFish"),
-  make_option(c("-o", "--option"), action="store", default=NA, type='character',
+  make_option(c("-p", "--pool"), action="store", default=NA, type='character',
               help="TRUE, FALSE or pseudo"),
   make_option(c("-c", "--cores"), action="store", default=20, type='integer',
               help="number of cores, default 20"))
@@ -37,12 +37,11 @@ opt = parse_args(OptionParser(option_list=option_list))
 
 voyage <- opt$voyage
 assay  <- opt$assay
-opt <- opt$option
+pool   <- opt$pool
 cores  <- opt$cores
 
 # Making sure that we keep the booleans when required and a character for the pseudo option
-option <- ifelse(opt %in% "TRUE", TRUE,
-          ifelse(opt %in% "FALSE", FALSE, "pseudo"))
+poolon <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseudo"))
 
 #......................................................................................
 # WE CALL THE SCRIPT WE NEED BASED ON THE OPTIONS INPUT
