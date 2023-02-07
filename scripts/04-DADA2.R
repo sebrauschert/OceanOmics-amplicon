@@ -41,7 +41,7 @@ pool   <- opt$pool
 cores  <- opt$cores
 
 # Making sure that we keep the booleans when required and a character for the pseudo option
-poolon <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseudo"))
+option <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseudo"))
 
 #......................................................................................
 # WE CALL THE SCRIPT WE NEED BASED ON THE OPTIONS INPUT
@@ -186,7 +186,7 @@ head(derep_reverse)
 save(derep_forward, derep_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
 #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
 #......................................................................................
-¯
+
 # Sample inference
 dada_forward <- dada(derep_forward, 
                      err = errors_forward, 
