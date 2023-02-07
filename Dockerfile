@@ -83,7 +83,6 @@ RUN chmod +x /opt/amplicon_pipeline/00-setup.sh && \
     chmod +x /opt/amplicon_pipeline/01-demultiplex.sh && \
     chmod +x /opt/amplicon_pipeline/02-rename_demux.sh && \
     chmod +x /opt/amplicon_pipeline/03-seqkit_stats.sh  && \
-    chmod +x /opt/amplicon_pipeline/04.1-docker_DADA2.sh && \
     chmod +x /opt/amplicon_pipeline/05-run_LULU.sh  && \
     chmod +x /opt/amplicon_pipeline/06-run_blast.sh  && \
     chmod +x /opt/amplicon_pipeline/07-run_LCA.sh  && \
