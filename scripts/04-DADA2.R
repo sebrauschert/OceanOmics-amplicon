@@ -37,9 +37,11 @@ opt = parse_args(OptionParser(option_list=option_list))
 
 voyage <- opt$voyage
 assay  <- opt$assay
-option <- opt$option
+opt <- opt$option
 cores  <- opt$cores
 
+# Making sure that we keep the booleans when required and a character for the pseudo option
+option <- ifelese(opt %in% "TRUE", TRUE, ifelse(opt %in% "FALSE", FALSE, "pseudo"))
 
 #......................................................................................
 # WE CALL THE SCRIPT WE NEED BASED ON THE OPTIONS INPUT
@@ -112,9 +114,6 @@ names(filtRs) <- sample.names_Rs
 out <- filterAndTrim(fnFs, filtFs,
                      fnRs, filtRs,
                      trimLeft = c(trim_len_Fw,trim_len_Rv),
-                     maxN=0,
-                     truncQ=0,
-                     rm.phix=TRUE,
                      compress=TRUE,
                      multithread=cores)
 head(out)
@@ -187,7 +186,7 @@ head(derep_reverse)
 save(derep_forward, derep_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
 #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
 #......................................................................................
-  
+¯
 # Sample inference
 dada_forward <- dada(derep_forward, 
                      err = errors_forward, 
@@ -211,9 +210,7 @@ save(dada_forward, dada_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_"
 mergers <- mergePairs(dada_forward, 
                       filtFs, 
                       dada_reverse, 
-                      filtRs, 
-                      minOverlap = 5,
-                      maxMismatch = 2,
+                      filtRs,
                       verbose=TRUE)
   
 #......................................................................................
