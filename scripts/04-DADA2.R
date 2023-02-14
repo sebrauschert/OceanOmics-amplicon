@@ -31,14 +31,20 @@ option_list = list(
   make_option(c("-p", "--pool"), action="store", default=NA, type='character',
               help="TRUE, FALSE or pseudo"),
   make_option(c("-c", "--cores"), action="store", default=20, type='integer',
-              help="number of cores, default 20"))
+              help="number of cores, default 20"),
+  make_option(c("-m", "--minOverlap"), action="store", default=12, type='integer',
+              help="min overlap when merging pairs, default 12"),
+  make_option(c("-x", "--maxMismatch"), action="store", default=0, type='integer',
+              help="max mismatch of merge region, default 0"))
 
 opt = parse_args(OptionParser(option_list=option_list))
 
-voyage <- opt$voyage
-assay  <- opt$assay
-pool   <- opt$pool
-cores  <- opt$cores
+voyage       <- opt$voyage
+assay        <- opt$assay
+pool         <- opt$pool
+cores        <- opt$cores
+min_overlap  <- opt$minOverlap
+max_mismatch <- opt$maxMismatch
 
 # Making sure that we keep the booleans when required and a character for the pseudo option
 option <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseudo"))
@@ -211,6 +217,8 @@ mergers <- mergePairs(dada_forward,
                       filtFs, 
                       dada_reverse, 
                       filtRs,
+                      min_overlap,
+                      max_mismatch,
                       verbose=TRUE)
   
 #......................................................................................
