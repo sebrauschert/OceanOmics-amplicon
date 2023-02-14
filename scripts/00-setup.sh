@@ -23,6 +23,10 @@ do
 done
 if [ "${projectID}" == ""  ]; then usage; fi
 
+# from https://stackoverflow.com/a/246128
+# where does the setup script live?
+# need to know this for more robust copying of all scripts later in the script
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Create a new directory based on input
 #...............................................................................................
@@ -30,7 +34,7 @@ mkdir ${projectID}_amplicon_analysis
 
 # Enter the folder and make it a datalad container
 cd ${projectID}_amplicon_analysis
-
+pwd
 echo 'Preparing data repository...'
 echo ''
 
@@ -53,7 +57,9 @@ mkdir -p 00-raw-data/indices \
       05-taxa/blast_out \
       05-taxa/LCA_out \
       06-report \
-      scripts
+      databases \
+      scripts \
+      logs
 
 # Place a README.md in every folder
 #...............................................................................................
@@ -85,15 +91,13 @@ echo "# Project:" >> README.md
 echo "# Analyst:" >> README.md
 echo "# Overview:" >> README.md
 
-
-# Removing the copying - we assume that we're inside the OceanOmics-amplicon folder anyways
-# get current folder
-cp -r ../OceanOmics-amplicon/scripts/* scripts
+cp -r ${SCRIPT_DIR}/* scripts
 
 # Finished
 #...............................................................................................
-echo "Finished setting up analysis directory!\n"
-echo "Directory name is $1"
+echo "Finished setting up analysis directory!"
+echo
+echo "Directory name is `pwd`"
 echo
 tree -d
 #...............................................................................................

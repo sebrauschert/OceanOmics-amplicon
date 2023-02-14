@@ -34,6 +34,9 @@ conda activate amplicon
 
 ROOT_DIR=$(pwd)
 
+# log the commands
+set -x
+exec 1>logs/03-seqkit_stats.log 2>&1
 # User feedback
 echo "Main directory is:"
 echo $ROOT_DIR

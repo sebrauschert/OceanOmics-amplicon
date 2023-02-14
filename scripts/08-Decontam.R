@@ -11,6 +11,13 @@ suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(dplyr))
 
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") != ""){
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
+
 # Define options for command line
 option_list = list(
   make_option(c("-v", "--voyage"), action="store", default=NA, type='character',
@@ -26,17 +33,9 @@ voyage <- opt$voyage
 assay  <- opt$assay
 option <- opt$option
 
-# get vector of control files that end in .1.fq.gz
+# get vector of control files that end in .1.fq.gz then remove the suffux
 suffix <- paste0("_", assay, ".1.fq.gz")
 controls <- list.files(paste0("./01-demultiplexed/", assay, "/Controls/"), pattern = paste0("*", suffix))
-
-# the water controls might be in the site folders
-water_suffix <- paste0("WC", suffix)
-water_controls <- list.files(paste0("./01-demultiplexed/", assay, "/"), pattern = paste0("*", water_suffix), recursive = TRUE)                       
-water_controls <- basename(water_controls)
-
-# concatenate the two vectors and remove the suffix
-controls <- c(controls, water_controls)
 controls <- sub(suffix, "", controls)
 
 #......................................................................................

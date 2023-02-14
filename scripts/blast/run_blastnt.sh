@@ -38,8 +38,22 @@ eval "$(conda shell.bash hook)"
 #"$(conda shell.bash hook)"
 conda activate blast-2.12.0
 
+# log the commands
+set -x
+exec 1>logs/06-run_blast.nt.log 2>&1
+
+# print stats on the NT database for later
+blastdbcmd -info -db /data/tools/databases/ncbi-nt/nt > logs/06-run_blast_nt_database_information.log
+
 # Now we can use the LULU curated fasta file for the blastn input
 echo blasting ${voyageID} ${assay} ASVs
+
+# For the containerised version: if the ANALYSIS path is present,
+# change to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+   then cd $ANALYSIS;
+fi
+
 
 blastn -db /data/tools/databases/ncbi-nt/nt \
        -query 04-LULU/LULU_curated_fasta_${voyageID}_${assay}.fa \

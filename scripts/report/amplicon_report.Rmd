@@ -1,0 +1,282 @@
+---
+title: "Amplicon Report"
+
+output: html_document
+
+params:
+  voyage:
+  assays:
+  random_samples:
+  sequencing_run: "NA"
+
+knit: (function(inputFile, encoding) {
+      rmarkdown::render(inputFile,
+                        encoding=encoding)})
+---
+
+```{r load_packages, include=FALSE}
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") == ""){
+
+  next
+
+}else{
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
+
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(png))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(scales))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(tibble))
+```
+
+```{r set_variables, include=FALSE}
+# Get the params
+voyage <- params$voyage
+assays  <- params$assays %>%
+  strsplit(",") 
+random_samples <- params$random_samples %>%
+  strsplit(",") 
+sequencing_run  <- params$sequencing_run
+
+# The working directory will be in /scripts/report/
+# we need the path to the parent directory of /scripts/
+path <- dirname(dirname(getwd()))
+```
+
+```{r build_header, include=FALSE}
+# The function of this code chunk is to build the 'assay_header' with commas separating the assays
+# There should also be an 'and' before the last assay
+
+# Add the first assay to the 'assay_header' and start looping if there is more than one assay
+assay_header <- assays[[1]][[1]]
+if (length(assays[[1]]) > 1) {
+  for (i in assays[[1]]) {
+  
+    # If the current assay is not the first or last assay
+    if (i != assays[[1]][[length(assays[[1]])]] & i != assays[[1]][[1]]) {
+      assay_header <- paste(assay_header, ", ", i, sep="")
+    
+    # If the current assay is the last assay
+    } else if (i == assays[[1]][[length(assays[[1]])]]) {
+      assay_header <- paste(assay_header, ", and ", i, sep="")
+    }
+  }
+}
+```
+
+```{r header, results = 'asis', echo=FALSE}
+cat("### Voyage: ", voyage, "\n")
+cat("### Assays: ", assay_header, "\n")
+cat("### Sequencing run: ", sequencing_run, "\n")
+```
+
+```{r import_data, include=FALSE}
+# Get sample statistics produced by SeqKit
+sample_stats <- list()
+for (i in assays[[1]]) {
+  sample_stats[[i]] <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, ".txt", sep="")) %>%
+  data.frame() %>%
+  list()
+}
+
+# Get the tax table from the phyloseq objects
+# We'll use these to determine number of LCA's at species level, genus level, etc
+phyloseq_objects <- list()
+for (i in assays[[1]]) {
+  curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_nt.rds", sep=""))
+  
+  phyloseq_objects[[i]] <- curr_phylo_object@tax_table %>%
+  data.frame() %>%
+  list()
+}
+```
+----------------------------------------------------------------------------------------------------------------------------\
+\
+
+## Density Plots {.tabset}
+Lets look at density plots to visualise the output of the sample statistics created by SeqKit.
+
+```{r sample_stats, echo=FALSE}
+# I learnt how to create tabs to view different ggplots from Stefan F's answer to this Stack Overflow question 
+# https://stackoverflow.com/questions/42631642/creating-dynamic-tabs-in-rmarkdown
+
+template <- c(
+    "### Assay: {{i}}\n",
+    "```{r, echo=FALSE}\n",
+    
+    "ggplot(sample_stats[['{{i}}']][[1]], aes(x=num_seqs)) + \
+    geom_histogram(aes(y=after_stat(density)), colour='red', fill='white', bins=30) + \
+    geom_density(alpha=.2, fill='#FF6666') + \
+    scale_x_continuous(name='num_seqs', labels = comma) + \
+    scale_y_continuous(name='density', labels = comma)",
+    "```\n",
+    "\n"
+  )
+
+plots <- lapply(
+  unique(assays[[1]]), 
+  function(i) knitr::knit_expand(text = template)
+)
+```
+`r knitr::knit(text = unlist(plots))`
+
+## {-}
+
+\
+\
+
+## Samples Through Stages {.tabset}
+Now lets look at box plots that visualise the number of reads after the different steps of DADA2 script.
+
+```{r samples_through_stages, results = 'asis', echo=FALSE}
+for (i in assays[[1]]){
+  cat("### Assay: ", i, "\n")
+  cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_", i, ".png)\n", sep=""))
+  cat("\n")
+}
+```
+
+## {-}
+
+\
+\
+
+## ASV seq distribution {.tabset}
+After the DADA2 step has been run on the forward and reverse reads, the paired end reads are merged.
+Lets look at histograms to show sequence length distributions after the paired end reads have been merged.
+
+```{r seq_distribution, results = 'asis', echo=FALSE}
+for (i in assays[[1]]){
+  cat("### Assay: ", i, "\n")
+  cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_ASV_seq_distribution_", i, ".png)\n", sep=""))
+  cat("\n")
+}
+```
+
+## {-}
+
+\
+\
+
+## Error plots {.tabset}
+This section of the report shows the error rates used during the DADA2 step.
+
+```{r error_plots, results = 'asis', echo=FALSE}
+for (i in assays[[1]]){
+  cat("### Assay: ", i, "\n")
+  cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_errorsplot_Fs_", i, ".png)\n", sep=""))
+  cat("\n")
+}
+```
+
+## {-}
+
+\
+\
+
+## Random sample quality profiles {.tabset}
+This section of the amplicon report visualises the quality profiles of three random samples.
+Each sample has a quality profile before and after trimming.
+
+```{r quality_profile_assays, results = 'asis', echo=FALSE}
+for (i in assays[[1]]) {
+  cat("### Assay: ", i, "\n")
+  for (y in random_samples[[1]]) { 
+    cat(paste("#### Assay: ", i, "\n Sample: ", y, " - raw", sep=""))
+    cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", y, "_", i, "_raw.png)\n", sep=""))
+    cat("\n")
+    cat(paste("#### Assay: ", i, "\n Sample: ", y, " - trimmed", sep=""))
+    cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", y, "_", i, "_trimmed.png)\n", sep=""))
+    cat("\n")
+  }
+  cat("\n")
+}
+```
+
+```{r quality_profiles_samples, results = 'asis', echo=FALSE}
+for (y in random_samples[[1]]) {
+  cat("### Sample: ", y, "\n") 
+  for (i in assays[[1]]) {
+    cat(paste("#### Assay: ", i, "\n Sample: ", y, " - raw", sep=""))
+    cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", y, "_", i, "_raw.png)\n", sep=""))
+    cat("\n")
+    cat(paste("#### Assay: ", i, "\n Sample: ", y, " - trimmed", sep=""))
+    cat(paste("![](", path, "/03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", y, "_", i, "_trimmed.png)\n", sep=""))
+    cat("\n")
+  }  
+  cat("\n")
+}
+```
+
+## {-}
+
+\
+\
+
+```{r calc_LCA_info, echo=FALSE}
+species <- list()
+genus <- list()
+family <- list()
+order <- list()
+class <- list()
+phylum <- list()
+domain <- list()
+
+
+for (i in assays[[1]]) {
+  species[[i]] <- 0
+  genus[[i]] <- 0
+  family[[i]] <- 0
+  order[[i]] <- 0
+  class[[i]] <- 0
+  phylum[[i]] <- 0
+  domain[[i]] <- 0
+  
+  for (row in 1:nrow(phyloseq_objects[[i]][[1]])) {
+    if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"species"]]) {
+      species[[i]] <- species[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"genus"]]) {
+      genus[[i]] <- genus[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"family"]]) {
+      family[[i]] <- family[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"order"]]) {
+      order[[i]] <- order[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"class"]]) {
+      class[[i]] <- class[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"phylum"]]) {
+      phylum[[i]] <- phylum[[i]] + 1
+    } else if (phyloseq_objects[[i]][[1]][[row,"LCA"]] == phyloseq_objects[[i]][[1]][[row,"domain"]]) {
+      domain[[i]] <- domain[[i]] + 1
+    }
+  }
+}
+
+```
+
+## LCAs {.tabset}
+This section shows the number of Amplicon Sequence Variants (ASVs) with their Lowest Common Ancestor (LCA) found at the species level, genus level, etc.
+
+```{r display_LCA_info_16S, results='asis', echo=FALSE}
+for (i in assays[[1]]) {
+  cat("### Assay: ", i, "\n")
+  cat("#### LCA's at species level: ", species[[i]], "\n")
+  cat("#### LCA's at genus level: ", genus[[i]], "\n")
+  cat("#### LCA's at family level: ", family[[i]], "\n")
+  cat("#### LCA's at order level: ", order[[i]], "\n")
+  cat("#### LCA's at class level: ", class[[i]], "\n")
+  cat("#### LCA's at phylum level: ", phylum[[i]], "\n")
+  cat("#### LCA's at domain level: ", domain[[i]], "\n")
+  cat("\n")
+}
+
+```
+
+## {-}
+
+\
+\

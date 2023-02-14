@@ -7,6 +7,15 @@ library(lulu)
 library(readr)
 library(getopt)
 
+# Set working directory for this script
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") != ""){
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
+
+
 # specify input options
 # Column 1: the long flag name.  A multi-\link{character} string.
 # Column 2: short flag alias of Column 1.  A single-\link{character} string.
@@ -31,5 +40,3 @@ saveRDS(curated_result, file = paste0('04-LULU/',voyage,'_',assay,'_LULU_object.
 
 LULU_tab    <- as_tibble(tibble::rownames_to_column(curated_result$curated_table, "ASV"))
 write_csv(LULU_tab, paste0('04-LULU/LULU_curated_counts_',voyage,'_',assay,'.csv'))
-
-                
