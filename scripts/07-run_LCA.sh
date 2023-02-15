@@ -48,10 +48,10 @@ for a in ${assay[@]}
         fi
 
         python LCA/runAssign_collapsedTaxonomy.py \
-        03-dada2/${voyageID}_${a}_lca_input.tsv \
-        05-taxa/blast_out/${voyageID}_${a}_nt.tsv \
+        ../03-dada2/${voyageID}_${a}_lca_input.tsv \
+        ../05-taxa/blast_out/${voyageID}_${a}_nt.tsv \
         100 98 1 \
-        05-taxa/LCA_out/${voyageID}_${a}_nt_LCA.tsv
+        ../05-taxa/LCA_out/${voyageID}_${a}_nt_LCA.tsv
   done
 
 fi
