@@ -135,6 +135,16 @@ The pipeline expects fastq of your amplicon sequencing data in the 00-raw-data/ 
 
 All output and error messages are logged to a file in the `logs/` folder named after the respective step.
 
+#### Global Variables
+
+The Docker version of this pipeline (that's still in development) handles working directories within the Docker images using two global variables; CODE and ANALYSIS. If you are not using the Docker version of this pipeline, you need to manually set these global variables.
+
+```
+cd myFirstProject_amplicon_analysis
+export ANALYSIS=$(pwd)
+export CODE=$(pwd)/scripts
+```
+
 #### (optional) Demultiplexing
 
 Some amplicon data needs to be demultiplexed. We store indices for demultiplexing in a voyageID/assayID structure. For each voyage and each assay we need two files in `00-raw-data/indices`: `voyageID_assayID_Fw.fa` and `voyageID_assayID_Rv.fa`. Please add these manually.
