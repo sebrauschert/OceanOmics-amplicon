@@ -41,11 +41,17 @@ for a in ${assay[@]}
   do
         echo  running LCA analysis on ${voyageID} ${a} NCBI nt database
 
-        python scripts/LCA/runAssign_collapsedTaxonomy.py \
-        03-dada2/${voyageID}_${a}_lca_input.tsv \
-        05-taxa/blast_out/${voyageID}_${a}_nt.tsv \
+        # For the containerised version: if the CODE path is present,
+        # change to the CODE directory
+        if [ -n "$CODE" ]
+            then cd $CODE;
+        fi
+
+        python LCA/runAssign_collapsedTaxonomy.py \
+        ../03-dada2/${voyageID}_${a}_lca_input.tsv \
+        ../05-taxa/blast_out/${voyageID}_${a}_nt.tsv \
         100 98 1 \
-        05-taxa/LCA_out/${voyageID}_${a}_nt_LCA.tsv
+        ../05-taxa/LCA_out/${voyageID}_${a}_nt_LCA.tsv
   done
 
 fi
@@ -61,7 +67,13 @@ for a in ${assay[@]}
   do
         echo  running LCA analysis on ${voyageID} ${a} custom database
 
-        python scripts/LCA/runAssign_collapsedTaxonomy.py \
+        # For the containerised version: if the CODE path is present,
+        # change to the CODE directory
+        if [ -n "$CODE" ]
+            then cd $CODE;
+        fi
+
+        python LCA/runAssign_collapsedTaxonomy.py \
         03-dada2/${voyageID}_${a}_lca_input.tsv \
         05-taxa/blast_out/${voyageID}_${a}_blast_results.tsv \
         100 98 1 \

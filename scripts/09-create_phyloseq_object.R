@@ -3,9 +3,8 @@
 # based on here: https://joey711.github.io/phyloseq/import-data.html
 # Seb Rauschert
 # 22/07/2022
-# Modified: Jessica Pearce
-# 04/11/2022
-
+# Modified: Jessica Pearce, Adam Bennett
+#
 # Usage: Rscript scripts/08-create_phyloseq_object.R -v RSV5 -a 16S -o custom
 #===========================================================================
 
@@ -18,6 +17,14 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(DECIPHER))
 suppressPackageStartupMessages(library(phangorn))
 suppressPackageStartupMessages(library(Biostrings))
+
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") != ""){
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
+
 
 # Define options for command line
 option_list = list(

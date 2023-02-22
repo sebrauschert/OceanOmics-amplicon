@@ -22,15 +22,22 @@ if [ "${voyageID}" == ""  ]; then usage; fi
 #if [ "${assay[@]}" == ""  ]; then usage; fi
 
 
+
 for a in "${assay[@]}"
   do
         eval "$(conda shell.bash hook)"
         conda activate pytaxonkit
         echo  "Running LULU on ${voyageID} ${a}"
+
+        # For the containerised version: if the CODE path is present,
+        # change to the CODE directory
+        if [ -n "$CODE" ]
+            then cd $CODE;
+        fi
+
+        bash LULU/01-lulu_create_match_list.sh -v ${voyageID} -a ${a}
         
-        bash scripts/LULU/01-lulu_create_match_list.sh -v ${voyageID} -a ${a}
-        
-        Rscript scripts/LULU/02-LULU.R -v ${voyageID} -a ${a}
+        Rscript LULU/02-LULU.R -v ${voyageID} -a ${a}
 
         # Activate amplicon conda environent for seqkit
         eval "$(conda shell.bash hook)"
@@ -38,6 +45,12 @@ for a in "${assay[@]}"
 
  	    # Next we need to curate the fasta files from DADA2 to only include the ASVs output by LULU
         echo curating ${voyageID} ${a} fasta file
+
+        # For the containerised version: if the ANALYSIS path is present,
+        # change to the ANALYSIS directory
+        if [ -n "$ANALYSIS" ]
+            then cd $ANALYSIS;
+        fi
 
         cat 04-LULU/LULU_curated_counts_${voyageID}_${a}.csv | \
         cut -d "," -f1 | \

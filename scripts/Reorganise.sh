@@ -1,30 +1,33 @@
 #!/bin/bash
 
-# Organising samples into sites fro DADA2 input
-# The query was run seperate for 16S and MiFish assays
+# Put control samples into a seperate Controls folder
 
-# name voyage and assay
-voyage=$1
-assay=$2
+#..........................................................................................
+usage()
+{
+          printf "Usage: $0 -a <assay; use the flag multiple times for multiple assays>\t<string>\n\n";
+          exit 1;
+}
+while getopts a: flag
+do
 
-input_directory="$(pwd)/01-demultiplexed/${assay}"
-declare -a SITES=("")
-declare -a SAMPLES=({1..5} "WC")
-
-for site in ${SITES[@]}
- do
-	mkdir ${input_directory}/${voyage}_${site}
+        case "${flag}" in
+            a) assay+=("$OPTARG");;
+            *) usage;;
+        esac
 done
 
-for site in ${SITES[@]}
- do
-  for sample in ${SAMPLES[@]}
-    do
-       cp ${input_directory}/${voyage}_${site}_${sample}_${assay}.[12].fq.gz ${input_directory}/${voyage}_${site}
- done
-done
+for a in "${assay[@]}"
+do
+    if [[ -z "${a}" ]];
+    then
+       continue
+    fi
 
-mkdir ${input_directory}/Controls
-mv ${input_directory}/*EB* ${input_directory}/Controls
-mv ${input_directory}/*BC* ${input_directory}/Controls
-mv ${input_directory}/NTC* ${input_directory}/Controls
+    input_directory="$(pwd)/01-demultiplexed/${a}"
+
+    mkdir ${input_directory}/Controls
+    mv ${input_directory}/*EB* ${input_directory}/Controls
+    mv ${input_directory}/*WC* ${input_directory}/Controls
+    mv ${input_directory}/*FC* ${input_directory}/Controls
+done

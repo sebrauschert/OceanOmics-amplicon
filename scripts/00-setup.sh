@@ -57,6 +57,7 @@ mkdir -p 00-raw-data/indices \
       05-taxa/blast_out \
       05-taxa/LCA_out \
       06-report \
+      databases \
       scripts \
       logs
 
