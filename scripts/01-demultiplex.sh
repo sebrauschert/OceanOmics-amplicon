@@ -79,8 +79,3 @@ do
         $read1 $read2
 done
 #..........................................................................................
-exit
-exitstatus=$?
-if [[ $exitstatus != 0 ]]; then
-	echo $exitstatus
-fi
