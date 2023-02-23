@@ -96,6 +96,7 @@ cp -r ${SCRIPT_DIR}/* scripts
 # Set up the blast database
 #...............................................................................................
 
+echo 'Setting up the BLAST database'
 cp ${SCRIPT_DIR}/../resources/* databases/
 gunzip databases/12S.v0.7.16S.v0.2.fasta.gz
 
