@@ -32,6 +32,7 @@ if [ "${database}" == ""  ]; then usage; fi
 
 # log the commands
 set -x
+echo 'Writing logs to logs/06-run_blast.log'
 exec 1>logs/06-run_blast.log 2>&1
 
 # Define voyage ID and database option

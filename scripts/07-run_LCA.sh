@@ -32,6 +32,7 @@ conda activate pytaxonkit
 
 # log the commands
 set -x
+echo 'Writing logs to logs/07-run_LCA.log'
 exec 1>logs/07-run_LCA.log 2>&1
 
 if [ "$database" == "nt" ];
