@@ -40,6 +40,7 @@ eval "$(conda shell.bash hook)"
 conda activate amplicon
 
 set -x
+echo 'Writing logs to logs/01-demultiplex.log'
 exec 1>logs/01-demultiplex.log 2>&1
 
 for a in "${assay[@]}"

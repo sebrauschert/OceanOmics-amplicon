@@ -36,6 +36,10 @@ LULU                                   - all functions required for LULU: 01-lul
 report                                 - Rmarkdown script for creating the amplicon_report at the end of the pipeline
 ```
 
+### Data
+
+This repository comes with the OceanOmics 12S and 16S database for Australian fish in the `resources/` folder. This is OceanOmics' custom blast database: all sequences for Australian fish families were downloaded from NCBI nuccore and genbank, misclassified species were identified and removed, and outdated synonyms were replaced with the current accepted name as stored in Fishbase.
+
 ## Dependencies
 
 ### Install `miniconda`
@@ -334,4 +338,4 @@ Jessica Pearce
 Sebastian Rauschert  
 Priscila Goncalves  
 Philipp Bayer  
-Adam Bennett
+Adam Bennett  
