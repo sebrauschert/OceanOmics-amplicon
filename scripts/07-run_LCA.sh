@@ -66,9 +66,9 @@ for a in ${assay[@]}
 
         python scripts/LCA/runAssign_collapsedTaxonomy.py \
         03-dada2/${voyageID}_${a}_lca_input.tsv \
-        05-taxa/blast_out/${voyageID}_${a}_OcOm.tsv \
+        05-taxa/blast_out/${voyageID}_${a}_ocom.tsv \
         100 98 1 \
-        05-taxa/LCA_out/${voyageID}_${a}_OcOm_LCA.tsv
+        05-taxa/LCA_out/${voyageID}_${a}_ocom_LCA.tsv
   done
 
 fi
