@@ -12,7 +12,7 @@ cores=50
 #..........................................................................................
 usage()
 {
-          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; nt, ocom or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
           exit 1;
 }
 while getopts v:a:d:c: flag
@@ -45,6 +45,18 @@ for a in ${assay[@]}
   done
 
 fi
+
+
+if [ "${database}" == "ocom" ];
+then
+
+for a in ${assay[@]}
+  do
+  bash scripts/blast/run_blastOcOm.sh -v ${voyageID} -a ${a} -c ${cores}
+  done
+
+fi
+
 
 if [ "${database}" == "custom" ];
 then

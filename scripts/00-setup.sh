@@ -57,6 +57,7 @@ mkdir -p 00-raw-data/indices \
       05-taxa/blast_out \
       05-taxa/LCA_out \
       06-report \
+      databases \
       scripts \
       logs
 
@@ -91,6 +92,16 @@ echo "# Analyst:" >> README.md
 echo "# Overview:" >> README.md
 
 cp -r ${SCRIPT_DIR}/* scripts
+
+# Set up the blast database
+#...............................................................................................
+
+cp ${SCRIPT_DIR}/../resources/* databases/
+gunzip databases/12S.v0.7.16S.v0.2.fasta.gz
+
+conda activate blast-2.12.0
+makeblastdb -dbtype nucl -in databases/12S.v0.7.16S.v0.2.fasta -parse_seqids -taxid_map 12S.v0.7.16S.v0.2.taxids.txt
+
 
 # Finished
 #...............................................................................................
