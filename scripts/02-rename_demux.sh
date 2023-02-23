@@ -50,7 +50,7 @@ for a in "${assay[@]}"
     
     # Here we reference the rename pattern files in the raw data folder, which contains the information that maps the 
     # index ID pairings with the sample IDs
-    mmv < ${ROOT_DIR}/00-raw-data/indices/Sample_name_rename_pattern_${voyageID}_${a}.txt
+    mmv < ${ROOT_DIR}/00-raw-data/indices/Sample_name_rename_pattern_${voyageID}_${a}.txt -g
    
     # move the unnamed and unknowns into separate folders 
     mkdir -p ${ROOT_DIR}/01-demultiplexed/${a}/unknown ${ROOT_DIR}/01-demultiplexed/${a}/unnamed

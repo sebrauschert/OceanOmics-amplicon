@@ -10,6 +10,14 @@ suppressPackageStartupMessages(library(RColorBrewer))
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(optparse))
 
+# this is necessary for the docker version of this script
+if(Sys.getenv("ANALYSIS") != ""){
+
+  setwd(Sys.getenv("ANALYSIS"))
+
+}
+
+
 # Define options for command line
 option_list = list(
   make_option(c("-v", "--voyage"), action="store", default=NA, type='character',

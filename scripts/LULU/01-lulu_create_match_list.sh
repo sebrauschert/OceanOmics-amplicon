@@ -24,6 +24,13 @@ if [ "${voyageID}" == ""  ]; then usage; fi
 eval "$(conda shell.bash hook)"
 conda activate blast-2.12.0
 
+# For the containerised version: if the ANALYSIS path is present,
+# change to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+   then cd $ANALYSIS;
+fi
+
+
 mkdir -p 04-LULU
 mkdir -p 04-LULU/database
 
