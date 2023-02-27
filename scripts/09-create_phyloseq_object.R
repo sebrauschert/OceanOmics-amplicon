@@ -61,82 +61,87 @@ if(option == "nt"){
   final_tab <- merge(contam_tab, asv_seq, by = "ASV", all.x = TRUE)
   write_csv(final_tab, paste0("05-taxa/",voyage,"_",assay,"_final_tab_nt.csv"))
 
-# Specify paths to data
-otu_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
-tax_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
-samples_df <- paste0("06-report/",voyage,"_metadata.csv")
-tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
+  # Specify paths to data
+  otu_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
+  tax_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
+  samples_df <- paste0("06-report/",voyage,"_metadata.csv")
+  tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
 
-#===========================================================================
-# CUSTOM WRANGLING
+  #===========================================================================
+  # CUSTOM WRANGLING
 
-meta <- read_csv(samples_df)
-taxa <- read_csv(tax_mat)
-otu  <- read_csv(otu_mat)
-seq_tab  <- read_csv(tree_mat)
+  meta <- read_csv(samples_df)
+  taxa <- read_csv(tax_mat)
+  otu  <- read_csv(otu_mat)
+  seq_tab  <- read_csv(tree_mat)
 
-# Prepare the metadata
-meta             <- as.data.frame(meta)
-rownames(meta)   <- meta$`Sample ID`
-meta$`Sample ID` <- NULL
+  # Prepare the metadata
+  meta             <- as.data.frame(meta)
 
-# Prepare the taxa data
-taxa["LCA"] <- ""
-taxa %>%
-  select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
-taxa           <- as.data.frame(taxa)
-
-# We need to fill the LCA column starting with 'species', then 'genus', etc
-# until we reach a taxonomy level that isn't 'na' or 'dropped'
-levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
-for (row in 1:nrow(taxa)) {
-  LCA <- NA
-  level_ID <- 1
-  while(LCA == "dropped" | is.na(LCA)) {
-    LCA <- taxa[row, levels[level_ID]]
-    level_ID <- level_ID + 1
+  if (! 'Sample ID' %in% colnames(meta))
+  {
+    stop(paste0("Please make sure ", samples_df, " contains a 'Sample ID' column"));
   }
-  taxa[row, "LCA"] <- LCA
-}
 
-rownames(taxa) <- taxa$ASV
-taxa$ASV       <- NULL
-taxa           <- as.matrix(taxa)
+  rownames(meta)   <- meta$`Sample ID`
+  meta$`Sample ID` <- NULL
 
-# Prepare otu data
-otu           <- as.data.frame(otu)
-rownames(otu) <- otu$ASV
-otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'Contam', 'ASV_sequence')] <- list(NULL)
+  # Prepare the taxa data
+  taxa["LCA"] <- ""
+  taxa %>%
+    select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
+  taxa           <- as.data.frame(taxa)
 
-# Prepare the phylo tree data
-DNA_set = DNAStringSet(seq_tab$ASV_sequence)
-names(DNA_set) = paste0(seq_tab$ASV)
+  # We need to fill the LCA column starting with 'species', then 'genus', etc
+  # until we reach a taxonomy level that isn't 'na' or 'dropped'
+  levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
+  for (row in 1:nrow(taxa)) {
+    LCA <- NA
+    level_ID <- 1
+    while(LCA == "dropped" | is.na(LCA)) {
+      LCA <- taxa[row, levels[level_ID]]
+      level_ID <- level_ID + 1
+    }
+    taxa[row, "LCA"] <- LCA
+  }
 
-alignment = AlignSeqs(DNA_set, anchor=NA, processors=cores)
+  rownames(taxa) <- taxa$ASV
+  taxa$ASV       <- NULL
+  taxa           <- as.matrix(taxa)
 
-phang_align <- phyDat(as(alignment, "matrix"), type="DNA")
-dm <- dist.ml(phang_align)
-treeNJ <- NJ(dm)
+  # Prepare otu data
+  otu           <- as.data.frame(otu)
+  rownames(otu) <- otu$ASV
+  otu[,c('ASV', 'domain', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'Contam', 'ASV_sequence')] <- list(NULL)
 
-fit = pml(treeNJ, data=phang_align)
-fitGTR <- update(fit, k=4, inv=0.2)
+  # Prepare the phylo tree data
+  DNA_set = DNAStringSet(seq_tab$ASV_sequence)
+  names(DNA_set) = paste0(seq_tab$ASV)
 
-if (optimise) {
-  # Use 'optim.pml()' to optimise the model parameters
-  fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
-}
+  alignment = AlignSeqs(DNA_set, anchor=NA, processors=cores)
 
-# Create the phyloseq object
-OTU = otu_table(otu, taxa_are_rows = TRUE)
-TAX = tax_table(taxa)
-META = sample_data(meta)
-TREE = phy_tree(fitGTR$tree)
+  phang_align <- phyDat(as(alignment, "matrix"), type="DNA")
+  dm <- dist.ml(phang_align)
+  treeNJ <- NJ(dm)
 
-physeq = phyloseq(OTU, TAX, META, TREE)
-saveRDS(physeq, file = paste0('06-report/',voyage,'_',assay,'_phyloseq_nt.rds'))
+  fit = pml(treeNJ, data=phang_align)
+  fitGTR <- update(fit, k=4, inv=0.2)
 
-#===========================================================================
+  if (optimise) {
+    # Use 'optim.pml()' to optimise the model parameters
+    fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+  }
 
+  # Create the phyloseq object
+  OTU = otu_table(otu, taxa_are_rows = TRUE)
+  TAX = tax_table(taxa)
+  META = sample_data(meta)
+  TREE = phy_tree(fitGTR$tree)
+
+  physeq = phyloseq(OTU, TAX, META, TREE)
+  saveRDS(physeq, file = paste0('06-report/',voyage,'_',assay,'_phyloseq_nt.rds'))
+
+  #===========================================================================
 }
 
 if(option == "custom"){
@@ -166,31 +171,37 @@ if(option == "custom"){
 
   # Prepare the metadata
   meta             <- as.data.frame(meta)
+
+  if (! 'Sample ID' %in% colnames(meta))
+  {
+    stop(paste0("Please make sure ", samples_df, " contains a 'Sample ID' column"));
+  }
+
   rownames(meta)   <- meta$`Sample ID`
   meta$`Sample ID` <- NULL
 
   # Prepare the taxa data
   taxa["LCA"] <- ""
-taxa %>%
-  select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
-taxa           <- as.data.frame(taxa)
+  taxa %>%
+    select(ASV, domain, phylum, class, order, family, genus, species, LCA, Contam, ASV_sequence) -> taxa
+  taxa           <- as.data.frame(taxa)
 
-# We need to fill the LCA column starting with 'species', then 'genus', etc
-# until we reach a taxonomy level that isn't 'na' or 'dropped'
-levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
-for (row in 1:nrow(taxa)) {
-  LCA <- NA
-  level_ID <- 1
-  while(LCA == "dropped" | is.na(LCA)) {
-    LCA <- taxa[row, levels[level_ID]]
-    level_ID <- level_ID + 1
+  # We need to fill the LCA column starting with 'species', then 'genus', etc
+  # until we reach a taxonomy level that isn't 'na' or 'dropped'
+  levels <- c("species", "genus", "family", "order", "class", "phylum", "domain")
+  for (row in 1:nrow(taxa)) {
+    LCA <- NA
+    level_ID <- 1
+    while(LCA == "dropped" | is.na(LCA)) {
+      LCA <- taxa[row, levels[level_ID]]
+      level_ID <- level_ID + 1
+    }
+    taxa[row, "LCA"] <- LCA
   }
-  taxa[row, "LCA"] <- LCA
-}
 
-rownames(taxa) <- taxa$ASV
-taxa$ASV       <- NULL
-taxa           <- as.matrix(taxa)
+  rownames(taxa) <- taxa$ASV
+  taxa$ASV       <- NULL
+  taxa           <- as.matrix(taxa)
 
   # Prepare otu data
   otu           <- as.data.frame(otu)
@@ -210,9 +221,10 @@ taxa           <- as.matrix(taxa)
   fit = pml(treeNJ, data=phang_align)
   fitGTR <- update(fit, k=4, inv=0.2)
 
-  # The 'optim.pml()' function is commented out because it is slow
-  # Use 'optim.pml()' to optimise the model parameters
-  #fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+  if (optimise) {
+    # Use 'optim.pml()' to optimise the model parameters
+    fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+  }
 
   # Create the phyloseq object
   OTU = otu_table(otu, taxa_are_rows = TRUE)
@@ -224,7 +236,6 @@ taxa           <- as.matrix(taxa)
   saveRDS(physeq, file = paste0('06-report/',voyage,'_',assay,'_phyloseq.rds'))
 
   #===========================================================================
-
 }
 
 ### Done!
