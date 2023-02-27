@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 voyageID=
 assay=
 #..........................................................................................
@@ -12,12 +10,11 @@ usage()
 }
 while getopts v:a: flag
 do
-
-        case "${flag}" in
-            v) voyageID=${OPTARG};;
-            a) assay+=("$OPTARG");;
-            *) usage;;
-        esac
+    case "${flag}" in
+        v) voyageID=${OPTARG};;
+        a) assay+=("$OPTARG");;
+        *) usage;;
+    esac
 done
 if [ "${voyageID}" == ""  ]; then usage; fi
 #if [ "${assay}" == ""  ]; then usage; fi
@@ -30,7 +27,6 @@ exec 1>logs/02-rename_demux.log 2>&1
 
 ROOT_DIR=$(pwd)
 
-
 # User feedback
 echo "Main directory is:"
 echo $ROOT_DIR
@@ -38,7 +34,7 @@ echo
 
 # Loop over assays and voyages for rename
 for a in "${assay[@]}"
-    do
+do
     # get around small bug where a is empty, leading to nonsense commands
     if [[ -z "${a}" ]];
     then
@@ -56,5 +52,4 @@ for a in "${assay[@]}"
     mkdir -p ${ROOT_DIR}/01-demultiplexed/${a}/unknown ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
     mv ${ROOT_DIR}/01-demultiplexed/${a}/*unknown*.fq.gz ${ROOT_DIR}/01-demultiplexed/${a}/unknown
     mv ${ROOT_DIR}/01-demultiplexed/${a}/${a}-* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
-     
 done
