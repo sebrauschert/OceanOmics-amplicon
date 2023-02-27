@@ -91,18 +91,15 @@ if (! 'index_seq_Fw' %in% colnames(tags))
   stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Fw' column"));
 }
 
-if (! 'index_seq_Rv' %in% colnames(tags))
-{
+if (! 'index_seq_Rv' %in% colnames(tags)) {
   stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Rv' column"));
 }
 
-if (! 'full_primer_seq_Fw' %in% colnames(tags))
-{
+if (! 'full_primer_seq_Fw' %in% colnames(tags)) {
   stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Fw' column"));
 }
 
-if (! 'full_primer_seq_Rv' %in% colnames(tags))
-{
+if (! 'full_primer_seq_Rv' %in% colnames(tags)) {
   stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Rv' column"));
 }
 

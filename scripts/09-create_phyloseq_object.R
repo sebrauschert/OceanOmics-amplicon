@@ -78,8 +78,7 @@ if(option == "nt"){
   # Prepare the metadata
   meta             <- as.data.frame(meta)
 
-  if (! 'Sample ID' %in% colnames(meta))
-  {
+  if (! 'Sample ID' %in% colnames(meta)) {
     stop(paste0("Please make sure ", samples_df, " contains a 'Sample ID' column"));
   }
 
