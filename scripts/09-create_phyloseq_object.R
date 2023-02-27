@@ -35,15 +35,18 @@ option_list = list(
   make_option(c("-o", "--option"), action="store", default=NA, type='character',
               help="nt or custom blast database"),
   make_option(c("-c", "--cores"), action="store", default=NA, type='integer',
-              help="number of cores"))
+              help="number of cores"),
+  make_option(c("-t", "--optimise_tree"), action="store", default=FALSE, type='logical',
+              help="TRUE or FALSE; setting this to TRUE will optimise the phylogenetic tree and cause the script take longer to run"))
 
 
 opt = parse_args(OptionParser(option_list=option_list))
 
-voyage <- opt$voyage
-assay  <- opt$assay
-option <- opt$option
-cores  <- opt$cores
+voyage   <- opt$voyage
+assay    <- opt$assay
+option   <- opt$option
+cores    <- opt$cores
+optimise <- opt$optimise
 
 
 # Run the analysis by executing the function above
@@ -118,9 +121,10 @@ treeNJ <- NJ(dm)
 fit = pml(treeNJ, data=phang_align)
 fitGTR <- update(fit, k=4, inv=0.2)
 
-# The 'optim.pml()' function is commented out because it is slow
-# Use 'optim.pml()' to optimise the model parameters
-#fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+if (optimise) {
+  # Use 'optim.pml()' to optimise the model parameters
+  fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE, rearrangement = "stochastic", control = pml.control(trace = 0))
+}
 
 # Create the phyloseq object
 OTU = otu_table(otu, taxa_are_rows = TRUE)
@@ -225,6 +229,3 @@ taxa           <- as.matrix(taxa)
 
 ### Done!
 print(paste0(voyage, " ", assay, " ", option, " phyloseq object successfully created!"))
-
-
-

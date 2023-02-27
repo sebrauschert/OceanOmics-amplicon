@@ -206,8 +206,8 @@ mergers <- mergePairs(dada_forward,
                       filtFs, 
                       dada_reverse, 
                       filtRs,
-                      min_overlap,
-                      max_mismatch,
+                      minOverlap = min_overlap,
+                      maxMismatch = max_mismatch,
                       verbose=TRUE)
   
 #......................................................................................

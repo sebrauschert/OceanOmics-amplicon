@@ -52,9 +52,11 @@ controls <- sub(suffix, "", controls)
    # Mark all potential contaminant ASV sequences in new column
    lca_tab$Contam <- "False"
    
-   # All ASV sequences identified in any control samples
+   # Flag all ASV sequences identified in 'WC', 'FC', or 'EB' control samples
    for (i in controls){
-     lca_tab$Contam[lca_tab[i] >0] <- "True"
+     if (grepl("WC", i, fixed = TRUE) | grepl("FC", i, fixed = TRUE) | grepl("EB", i, fixed = TRUE)) {
+       lca_tab$Contam[lca_tab[i] >0] <- "True"
+     }
    }
    
    lca_tab <- lca_tab %>%
@@ -86,9 +88,11 @@ controls <- sub(suffix, "", controls)
    # Mark all potential contaminant ASV sequences in new column
    lca_tab$Contam <- "False"
    
-   # All ASV sequences identified in any control samples
+   # Flag all ASV sequences identified in 'WC', 'FC', or 'EB' control samples
    for (i in controls){
-     lca_tab$Contam[lca_tab[i] >0] <- "True"
+     if (grepl("WC", i, fixed = TRUE) | grepl("FC", i, fixed = TRUE) | grepl("EB", i, fixed = TRUE)) {
+       lca_tab$Contam[lca_tab[i] >0] <- "True"
+     }
    }
    
    lca_tab <- lca_tab %>%
