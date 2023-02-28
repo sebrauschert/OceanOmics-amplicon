@@ -17,13 +17,12 @@ usage()
 }
 while getopts v:a:c: flag
 do
-
-        case "${flag}" in
-            v) voyageID=${OPTARG};;
-            a) assay+=("$OPTARG");;
-            c) cores=${OPTARG};;
-            *) usage;;
-        esac
+    case "${flag}" in
+        v) voyageID=${OPTARG};;
+        a) assay+=("$OPTARG");;
+        c) cores=${OPTARG};;
+        *) usage;;
+    esac
 done
 if [ "${voyageID}" == ""  ]; then usage; fi
 #if [ "${assay}" == ""  ]; then usage; fi
@@ -38,17 +37,22 @@ ROOT_DIR=$(pwd)
 set -x
 echo 'Writing logs to logs/03-seqkit_stats.log'
 exec 1>logs/03-seqkit_stats.log 2>&1
+
 # User feedback
 echo "Main directory is:"
 echo $ROOT_DIR
 
 # Loop over assays and voyages for rename
 for a in ${assay[@]}
-    do
+do
+    # get around small bug where a is empty, leading to nonsense commands
+    if [[ -z "${a}" ]];
+    then
+       continue
+    fi
     
-echo ${ROOT_DIR}/01-demultiplexed/${a}/
-
+    echo ${ROOT_DIR}/01-demultiplexed/${a}/
+    
     # Create stats and save to file
     seqkit stats -j ${cores} -b ${ROOT_DIR}/01-demultiplexed/${a}/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_${a}.txt
- 
 done

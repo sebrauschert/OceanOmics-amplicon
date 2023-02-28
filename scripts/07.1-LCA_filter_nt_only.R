@@ -4,7 +4,6 @@
 
 # Usage: Rscript scripts/LCA_filter.R -v RSV5 -a 16S
 
-
 suppressPackageStartupMessages(library(tidyverse)) 
 suppressPackageStartupMessages(library(RColorBrewer)) 
 suppressPackageStartupMessages(library(readr))
@@ -16,7 +15,6 @@ if(Sys.getenv("ANALYSIS") != ""){
   setwd(Sys.getenv("ANALYSIS"))
 
 }
-
 
 # Define options for command line
 option_list = list(

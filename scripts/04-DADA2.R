@@ -48,7 +48,7 @@ path         <- paste0("01-demultiplexed/", assay)
 list.files(path)
   
 # loading index file
-tags <- read_csv(paste0("00-raw-data/indices/",voyage,"_indices.csv"))
+tags <- read_csv(paste0("00-raw-data/indices/", voyage, "_indices.csv"))
   
 # read in fastq files
 fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
@@ -82,8 +82,26 @@ head(tags)
 
 # We can't use assay for the variable name because the subset() function
 # might get all rows where the assay column is equal to the assay column
-a = assay
+a    <- assay
 tags <- subset(tags, assay==a)
+
+# Check that the correct columns exist in the indices file
+if (! 'index_seq_Fw' %in% colnames(tags))
+{
+  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Fw' column"));
+}
+
+if (! 'index_seq_Rv' %in% colnames(tags)) {
+  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Rv' column"));
+}
+
+if (! 'full_primer_seq_Fw' %in% colnames(tags)) {
+  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Fw' column"));
+}
+
+if (! 'full_primer_seq_Rv' %in% colnames(tags)) {
+  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Rv' column"));
+}
 
 len_barcode_Fw <- unique(nchar(tags$index_seq_Fw))
 len_barcode_Rv <- unique(nchar(tags$index_seq_Rv))
@@ -206,8 +224,8 @@ mergers <- mergePairs(dada_forward,
                       filtFs, 
                       dada_reverse, 
                       filtRs,
-                      min_overlap,
-                      max_mismatch,
+                      minOverlap = min_overlap,
+                      maxMismatch = max_mismatch,
                       verbose=TRUE)
   
 #......................................................................................

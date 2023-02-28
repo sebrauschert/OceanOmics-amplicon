@@ -44,24 +44,32 @@ controls <- sub(suffix, "", controls)
 
 # Run the analysis by executing the function above
 
+
  if(option %in% c("nt", "ocom")){
    # we could have nt output, or OcOm database output
    suffix <- option
    
    # Read in filtered LCA results
    lca_tab <- read_csv(paste0("05-taxa/LCA_out/LCA_filtered_", voyage, "_", assay, "_", suffix, ".csv"))
+
+
    
-   # Mark all potential contaminant ASV sequences in new column
-   lca_tab$Contam <- "False"
+  # Read in filtered LCA results
+  lca_tab <- read_csv(paste0("05-taxa/LCA_out/LCA_filtered_", voyage, "_", assay, "_nt.csv"))
    
-   # All ASV sequences identified in any control samples
-   for (i in controls){
-     lca_tab$Contam[lca_tab[i] >0] <- "True"
-   }
+  # Mark all potential contaminant ASV sequences in new column
+  lca_tab$Contam <- "False"
    
-   lca_tab <- lca_tab %>%
-     relocate(OTU, .before = domain) %>%
-     rename(ASV = OTU)
+  # Flag all ASV sequences identified in 'WC', 'FC', or 'EB' control samples
+  for (i in controls){
+    if (grepl("WC", i, fixed = TRUE) | grepl("FC", i, fixed = TRUE) | grepl("EB", i, fixed = TRUE)) {
+      lca_tab$Contam[lca_tab[i] >0] <- "True"
+    }
+  }
+   
+  lca_tab <- lca_tab %>%
+    relocate(OTU, .before = domain) %>%
+    rename(ASV = OTU)
    
    # Write final output with contam labels
    write_csv(lca_tab, file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_", suffix, ".csv"))
@@ -70,45 +78,49 @@ controls <- sub(suffix, "", controls)
    nocontam <- read_csv(file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_", suffix, ".csv"))
    nocontam$Contam
    nocontam <- subset(nocontam, Contam=="FALSE")
-   
-   nocontam <- nocontam %>% 
-     select(where(~ any(. != 0)))
+
+
+  nocontam <- nocontam %>% 
+    select(where(~ any(. != 0)))
    
    write_csv(nocontam, file = paste0("05-taxa/", voyage, "_", assay, "_nocontam_", suffix, ".csv"))
    
  }
 
- if(option == "custom"){
+
+
+if(option == "custom"){
    
-   # Read in filtered LCA results
-   lca_tab <- read_delim(paste0("05-taxa/LCA_out/", voyage, "_", assay, "_LCA.tsv"))
+  # Read in filtered LCA results
+  lca_tab <- read_delim(paste0("05-taxa/LCA_out/", voyage, "_", assay, "_LCA.tsv"))
    
-   # Mark all potential contaminant ASV sequences in new column
-   lca_tab$Contam <- "False"
+  # Mark all potential contaminant ASV sequences in new column
+  lca_tab$Contam <- "False"
    
-   # All ASV sequences identified in any control samples
-   for (i in controls){
-     lca_tab$Contam[lca_tab[i] >0] <- "True"
-   }
+  # Flag all ASV sequences identified in 'WC', 'FC', or 'EB' control samples
+  for (i in controls){
+    if (grepl("WC", i, fixed = TRUE) | grepl("FC", i, fixed = TRUE) | grepl("EB", i, fixed = TRUE)) {
+      lca_tab$Contam[lca_tab[i] >0] <- "True"
+    }
+  }
    
-   lca_tab <- lca_tab %>%
-     relocate(OTU, .before = domain) %>%
-     rename(ASV = OTU)
+  lca_tab <- lca_tab %>%
+    relocate(OTU, .before = domain) %>%
+    rename(ASV = OTU)
    
-   # Write final output with contam labels
-   write_csv(lca_tab, file = paste0("05-taxa/", voyage, "_", assay, "_contam_table.csv"))
+  # Write final output with contam labels
+  write_csv(lca_tab, file = paste0("05-taxa/", voyage, "_", assay, "_contam_table.csv"))
    
-   # Create final file with no contaminants
-   nocontam <- read_csv(file = paste0("05-taxa/", voyage, "_", assay, "_contam_table.csv"))
-   nocontam$Contam
-   nocontam <- subset(nocontam, Contam=="FALSE")
+  # Create final file with no contaminants
+  nocontam <- read_csv(file = paste0("05-taxa/", voyage, "_", assay, "_contam_table.csv"))
+  nocontam$Contam
+  nocontam <- subset(nocontam, Contam=="FALSE")
    
-   nocontam <- nocontam %>% 
-     select(where(~ any(. != 0)))
+  nocontam <- nocontam %>% 
+    select(where(~ any(. != 0)))
    
-   write_csv(nocontam, file = paste0("05-taxa/", voyage, "_", assay, "_nocontam.csv"))
-   
- }
+  write_csv(nocontam, file = paste0("05-taxa/", voyage, "_", assay, "_nocontam.csv"))
+}
  
- ### Done!
- print(paste0(voyage, " ", assay, " decontamination done!"))
+### Done!
+print(paste0(voyage, " ", assay, " decontamination done!"))

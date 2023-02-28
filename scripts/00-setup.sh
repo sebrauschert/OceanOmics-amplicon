@@ -9,17 +9,16 @@ set -o pipefail # see http://redsymbol.net/articles/unofficial-bash-strict-mode/
 projectID=
 
 usage()
-{
-          printf "Usage: $0 -p <projectID>\t<string>\n\n";
-          exit 1;
+{   
+    printf "Usage: $0 -p <projectID>\t<string>\n\n";
+    exit 1;
 }
 while getopts p: flag
 do
-
-        case "${flag}" in
-            p) projectID=${OPTARG};;
-            *) usage;;
-        esac
+    case "${flag}" in
+        p) projectID=${OPTARG};;
+        *) usage;;
+    esac
 done
 if [ "${projectID}" == ""  ]; then usage; fi
 
@@ -27,6 +26,7 @@ if [ "${projectID}" == ""  ]; then usage; fi
 # where does the setup script live?
 # need to know this for more robust copying of all scripts later in the script
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 
 # Create a new directory based on input
 #...............................................................................................
@@ -48,18 +48,19 @@ echo 'path is:' $(pwd)
 # Set up the directory structure
 #...............................................................................................
 mkdir -p 00-raw-data/indices \
-      01-demultiplexed \
-      02-QC \
-      03-dada2/QC_plots \
-      03-dada2/tmpfiles \
-      03-dada2/errorModel \
-      04-LULU \
-      05-taxa/blast_out \
-      05-taxa/LCA_out \
-      06-report \
-      databases \
-      scripts \
-      logs
+         01-demultiplexed \
+         02-QC \
+         03-dada2/QC_plots \
+         03-dada2/tmpfiles \
+         03-dada2/errorModel \
+         04-LULU \
+         05-taxa/blast_out \
+         05-taxa/LCA_out \
+         06-report \
+         databases \
+         scripts \
+         logs
+
 
 # Place a README.md in every folder
 #...............................................................................................
@@ -72,17 +73,18 @@ echo "# Script used:" >> README.md
 echo "# Software version:" >> README.md
 echo "# Problems encountered:" >> README.md
 
-
 parallel cp README.md ::: 01-demultiplexed \
-      02-QC \
-      03-dada2 \
-      04-LULU \
-      05-taxa \
-      06-report
+                          02-QC \
+                          03-dada2 \
+                          04-LULU \
+                          05-taxa \
+                          06-report
+
 
 # Remove the readme file from the main folder structure
 #...............................................................................................
 rm README.md
+
 
 # Create a general README for this project
 #...............................................................................................
@@ -92,6 +94,7 @@ echo "# Analyst:" >> README.md
 echo "# Overview:" >> README.md
 
 cp -r ${SCRIPT_DIR}/* scripts
+
 
 # Set up the blast database
 #...............................................................................................
@@ -103,6 +106,7 @@ gunzip databases/12S.v0.7.16S.v0.2.fasta.gz
 eval "$(conda shell.bash hook)"
 conda activate blast-2.12.0
 makeblastdb -dbtype nucl -in databases/12S.v0.7.16S.v0.2.fasta -parse_seqids -taxid_map databases/12S.v0.7.16S.v0.2.taxids.txt
+
 
 # Finished
 #...............................................................................................
