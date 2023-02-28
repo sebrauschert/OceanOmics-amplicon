@@ -7,6 +7,8 @@ dependencies:
   - _r-mutex=1.0.1=anacondar_1
   - bioconductor-dada2
   - bioconductor-phyloseq
+  - bioconductor-decipher
+  - r-phangorn
   - binutils_impl_linux-64=2.36.1=h193b22a_2
   - binutils_linux-64=2.36=hf3e587d_9
   - bwidget=1.9.14=ha770c72_1

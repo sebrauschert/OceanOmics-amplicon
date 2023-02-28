@@ -96,6 +96,18 @@ echo "# Overview:" >> README.md
 cp -r ${SCRIPT_DIR}/* scripts
 
 
+# Set up the blast database
+#...............................................................................................
+
+echo 'Setting up the BLAST database'
+cp ${SCRIPT_DIR}/../resources/* databases/
+gunzip databases/12S.v0.7.16S.v0.2.fasta.gz
+
+eval "$(conda shell.bash hook)"
+conda activate blast-2.12.0
+makeblastdb -dbtype nucl -in databases/12S.v0.7.16S.v0.2.fasta -parse_seqids -taxid_map databases/12S.v0.7.16S.v0.2.taxids.txt
+
+
 # Finished
 #...............................................................................................
 echo "Finished setting up analysis directory!"

@@ -21,6 +21,7 @@ if [ "${voyageID}" == ""  ]; then usage; fi
 
 # log the commands
 set -x
+echo 'Writing logs to logs/02-rename_demux.log'
 exec 1>logs/02-rename_demux.log 2>&1
 
 # Rename all demultiplexed files to the sample names

@@ -25,7 +25,7 @@ option_list = list(
   make_option(c("-a", "--assay"), action="store", default=NA, type='character',
               help="assay, e.g. '16S' or 'MiFish"),
   make_option(c("-o", "--option"), action="store", default=NA, type='character',
-              help="nt or custom blast database"))  
+              help="ocom, nt, or custom blast database"))  
 
 opt = parse_args(OptionParser(option_list=option_list))
 
@@ -43,7 +43,16 @@ controls <- sub(suffix, "", controls)
 #......................................................................................
 
 # Run the analysis by executing the function above
-if(option == "nt"){
+
+
+ if(option %in% c("nt", "ocom")){
+   # we could have nt output, or OcOm database output
+   suffix <- option
+   
+   # Read in filtered LCA results
+   lca_tab <- read_csv(paste0("05-taxa/LCA_out/LCA_filtered_", voyage, "_", assay, "_", suffix, ".csv"))
+
+
    
   # Read in filtered LCA results
   lca_tab <- read_csv(paste0("05-taxa/LCA_out/LCA_filtered_", voyage, "_", assay, "_nt.csv"))
@@ -62,19 +71,22 @@ if(option == "nt"){
     relocate(OTU, .before = domain) %>%
     rename(ASV = OTU)
    
-  # Write final output with contam labels
-  write_csv(lca_tab, file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_nt.csv"))
+   # Write final output with contam labels
+   write_csv(lca_tab, file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_", suffix, ".csv"))
    
-  # Create final file with no contaminants
-  nocontam <- read_csv(file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_nt.csv"))
-  nocontam$Contam
-  nocontam <- subset(nocontam, Contam=="FALSE")
-   
+   # Create final file with no contaminants
+   nocontam <- read_csv(file = paste0("05-taxa/", voyage, "_", assay, "_contam_table_", suffix, ".csv"))
+   nocontam$Contam
+   nocontam <- subset(nocontam, Contam=="FALSE")
+
+
   nocontam <- nocontam %>% 
     select(where(~ any(. != 0)))
    
-  write_csv(nocontam, file = paste0("05-taxa/", voyage, "_", assay, "_nocontam_nt.csv"))
-}
+   write_csv(nocontam, file = paste0("05-taxa/", voyage, "_", assay, "_nocontam_", suffix, ".csv"))
+   
+ }
+
 
 
 if(option == "custom"){

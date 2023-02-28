@@ -12,8 +12,9 @@ cores=50
 #..........................................................................................
 usage()
 {
-    printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
-    exit 1;
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; nt, ocom or custom>\t <string>\n\t\t\t -c <cores, default 50 for blastn>\n\n";
+          exit 1;
+
 }
 while getopts v:a:d:c: flag
 do
@@ -31,6 +32,7 @@ if [ "${database}" == ""  ]; then usage; fi
 
 # log the commands
 set -x
+echo 'Writing logs to logs/06-run_blast.log'
 exec 1>logs/06-run_blast.log 2>&1
 
 # Define voyage ID and database option
@@ -54,6 +56,18 @@ then
         bash blast/run_blastnt.sh -v ${voyageID} -a ${a} -c ${cores}
     done
 fi
+
+
+if [ "${database}" == "ocom" ];
+then
+
+for a in ${assay[@]}
+  do
+  bash scripts/blast/run_blastOcOm.sh -v ${voyageID} -a ${a} -c ${cores}
+  done
+
+fi
+
 
 if [ "${database}" == "custom" ];
 then

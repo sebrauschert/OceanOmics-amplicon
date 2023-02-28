@@ -9,8 +9,10 @@ database=
 #..........................................................................................
 usage()
 {
-    printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; either nt or custom>\t <string>\n\n";
-    exit 1;
+
+          printf "Usage: $0 -v <voyageID>\t<string>\n\t\t\t -a <assay; use flag multiple times for multiple assays>\t<string>\n\t\t\t -d <database; nt, ocom or custom>\t <string>\n\n";
+          exit 1;
+
 }
 while getopts v:a:d: flag
 do
@@ -31,6 +33,7 @@ conda activate pytaxonkit
 
 # log the commands
 set -x
+echo 'Writing logs to logs/07-run_LCA.log'
 exec 1>logs/07-run_LCA.log 2>&1
 
 if [ "$database" == "nt" ];
@@ -58,6 +61,24 @@ then
                ../05-taxa/LCA_out/${voyageID}_${a}_nt_LCA.tsv
     done
 fi
+
+
+if [ "$database" == "ocom" ];
+then
+
+for a in ${assay[@]}
+  do
+        echo  running LCA analysis on ${voyageID} ${a} OceanOmics database
+
+        python scripts/LCA/runAssign_collapsedTaxonomy.py \
+        03-dada2/${voyageID}_${a}_lca_input.tsv \
+        05-taxa/blast_out/${voyageID}_${a}_ocom.tsv \
+        100 98 1 \
+        05-taxa/LCA_out/${voyageID}_${a}_ocom_LCA.tsv
+  done
+
+fi
+
 
 if [ "$database" == "custom" ];
 then

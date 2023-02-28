@@ -33,7 +33,7 @@ option_list = list(
   make_option(c("-a", "--assay"), action="store", default=NA, type='character',
               help="assay, e.g. '16S' or 'MiFish"),
   make_option(c("-o", "--option"), action="store", default=NA, type='character',
-              help="nt or custom blast database"),
+              help="ocom, nt, or custom blast database"),
   make_option(c("-c", "--cores"), action="store", default=NA, type='integer',
               help="number of cores"),
   make_option(c("-t", "--optimise_tree"), action="store", default=FALSE, type='logical',
@@ -50,22 +50,23 @@ optimise <- opt$optimise
 
 
 # Run the analysis by executing the function above
-if(option == "nt"){
-
-  contam_tab <- read_csv(paste0("05-taxa/",voyage,"_",assay,"_contam_table_nt.csv"))
+if(option %in% c("ocom", "nt")){
+  suffix <- option
+  contam_tab <- read_csv(paste0("05-taxa/",voyage,"_",assay,"_contam_table_", suffix, ".csv"))
   dada_tab <- read_tsv(paste0("03-dada2/",voyage,"_final_table_",assay,".tsv"))
 
   asv_seq <- dada_tab %>%
     select(ASV, ASV_sequence)
 
   final_tab <- merge(contam_tab, asv_seq, by = "ASV", all.x = TRUE)
-  write_csv(final_tab, paste0("05-taxa/",voyage,"_",assay,"_final_tab_nt.csv"))
+  write_csv(final_tab, paste0("05-taxa/",voyage,"_",assay,"_final_tab_", suffix, ".csv"))
 
-  # Specify paths to data
-  otu_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
-  tax_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
-  samples_df <- paste0("06-report/",voyage,"_metadata.csv")
-  tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
+# Specify paths to data
+otu_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
+tax_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
+samples_df <- paste0("06-report/",voyage,"_metadata.csv")
+tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
+
 
   #===========================================================================
   # CUSTOM WRANGLING
@@ -138,7 +139,7 @@ if(option == "nt"){
   TREE = phy_tree(fitGTR$tree)
 
   physeq = phyloseq(OTU, TAX, META, TREE)
-  saveRDS(physeq, file = paste0('06-report/',voyage,'_',assay,'_phyloseq_nt.rds'))
+saveRDS(physeq, file = paste0('06-report/',voyage,'_',assay,'_phyloseq_', suffix, '.rds'))
 
   #===========================================================================
 }
@@ -159,7 +160,7 @@ if(option == "custom"){
   otu_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab.csv')
   tax_mat    <- paste0('05-taxa/',voyage,'_',assay,'_final_tab.csv')
   samples_df <- paste0("06-report/",voyage,"_metadata.csv")
-  tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_nt.csv')
+  tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
 
   #===========================================================================
   # CUSTOM WRANGLING
