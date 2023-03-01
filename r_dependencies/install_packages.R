@@ -12,6 +12,12 @@ BiocManager::install("dada2")
 
 BiocManager::install("phyloseq")
 
+BiocManager::install("DECIPHER")
+
+install.packages("phangorn")
+
+BiocManager::install("Biostrings")
+
 install.packages("devtools", repos = 'http://cran.rstudio.com/')
 
 devtools::install_github("tobiasgf/lulu")
