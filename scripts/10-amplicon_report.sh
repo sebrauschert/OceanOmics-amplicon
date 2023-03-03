@@ -23,6 +23,12 @@ done
 if [ "${voyageID}" == ""  ]; then usage; fi
 if [ "${assay[1]}" == ""  ]; then usage; fi
 
+# For the containerised version: if the ANALYSIS path is present,
+# change to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+    then cd $ANALYSIS;
+fi
+
 # We need to build the assay string in the correct format for the r markdown script (e.g. '16S,MiFish')
 assay_rmd_input=
 for a in "${assay[@]}"
@@ -47,6 +53,12 @@ do
 done
 random_samples="${random_samples:1}"
 
-Rscript -e "rmarkdown::render('scripts/report/amplicon_report.Rmd',params=list(voyage = '${voyageID}', assays = '${assay_rmd_input}', random_samples = '${random_samples}', sequencing_run = '${sequencing_run}'))"
+# For the containerised version: if the CODE path is present,
+# change to the CODE directory
+if [ -n "$CODE" ]
+    then cd $CODE;
+fi
 
-mv scripts/report/amplicon_report.html 06-report
+Rscript -e "rmarkdown::render('report/amplicon_report.Rmd',params=list(voyage = '${voyageID}', assays = '${assay_rmd_input}', random_samples = '${random_samples}', sequencing_run = '${sequencing_run}'))"
+
+mv report/amplicon_report.html ../06-report
