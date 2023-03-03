@@ -61,4 +61,10 @@ fi
 
 Rscript -e "rmarkdown::render('report/amplicon_report.Rmd',params=list(voyage = '${voyageID}', assays = '${assay_rmd_input}', random_samples = '${random_samples}', sequencing_run = '${sequencing_run}'))"
 
-mv report/amplicon_report.html ../06-report
+
+# change back to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+    then cd $ANALYSIS;
+fi
+
+mv scripts/report/amplicon_report.html 06-report
