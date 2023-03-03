@@ -23,6 +23,12 @@ done
 if [ "${voyageID}" == ""  ]; then usage; fi
 if [ "${assay[1]}" == ""  ]; then usage; fi
 
+# For the containerised version: if the ANALYSIS path is present,
+# change to the ANALYSIS directory
+if [ -n "$ANALYSIS" ]
+    then cd $ANALYSIS;
+fi
+
 # We need to build the assay string in the correct format for the r markdown script (e.g. '16S,MiFish')
 assay_rmd_input=
 for a in "${assay[@]}"

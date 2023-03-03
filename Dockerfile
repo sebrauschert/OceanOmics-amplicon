@@ -93,7 +93,6 @@ RUN chmod +x /opt/amplicon_pipeline/00-setup.sh && \
     chmod +x /opt/amplicon_pipeline/blast/blast-16S-MiFish.py  && \
     chmod +x /opt/amplicon_pipeline/blast/run_blastnt.sh  && \
     chmod +x /opt/amplicon_pipeline/ecology_plots.R  && \
-    chmod +x /opt/amplicon_pipeline/Reorganise.sh  && \
     chmod +x /opt/amplicon_pipeline/LCA/runAssign_collapsedTaxonomy.py && \
     chmod +x /opt/amplicon_pipeline/LCA/working_function.py && \
     chmod +x /opt/amplicon_pipeline/LULU/01-lulu_create_match_list.sh && \
