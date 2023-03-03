@@ -23,7 +23,7 @@ done
 
 if [ "${voyageID}" == ""  ]; then usage; fi
 if [ "${assay[1]}" == ""  ]; then usage; fi
-if [ "${wd}" == "" ]; then wd=$(pwd)
+if [ "${wd}" == "" ]; then wd=$(pwd); fi
 
 # For the containerised version: if the ANALYSIS path is present,
 # change to the ANALYSIS directory
