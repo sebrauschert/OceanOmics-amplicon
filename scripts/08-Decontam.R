@@ -41,7 +41,7 @@ control_grep_patterns <- str_split_1(control_grep_patterns, ",")
 # get vector of demultiplexed files that end in .1.fq.gz then remove the suffux
 suffix <- paste0("_", assay, ".1.fq.gz")
 demux_files <- list.files(paste0("./01-demultiplexed/", assay, "/"), pattern = paste0("*", suffix))
-demux_files <- sub(suffix, "", controls)
+demux_files <- sub(suffix, "", demux_files)
 
 #......................................................................................
 # WE CALL THE SCRIPT WE NEED BASED ON THE OPTIONS INPUT
