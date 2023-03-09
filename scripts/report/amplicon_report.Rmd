@@ -15,17 +15,6 @@ knit: (function(inputFile, encoding) {
 ---
 
 ```{r load_packages, include=FALSE}
-# this is necessary for the docker version of this script
-if(Sys.getenv("ANALYSIS") == ""){
-
-  next
-
-}else{
-
-  setwd(Sys.getenv("ANALYSIS"))
-
-}
-
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(png))
 suppressPackageStartupMessages(library(ggplot2))
@@ -124,6 +113,33 @@ plots <- lapply(
 )
 ```
 `r knitr::knit(text = unlist(plots))`
+
+## {-}
+
+\
+\
+
+## Q30% {.tabset}
+Lets also view density plots to visualise the output of the Q30% statistics created by SeqKit.
+
+```{r sample_stats_q30, echo=FALSE}
+
+template2 <- c(
+    "### Assay: {{i}}\n",
+    "```{r Q30{{i}}, echo=FALSE}\n",
+
+    "ggplot(sample_stats[['{{i}}']][[1]], aes(x=Q30...)) + \
+    geom_bar(colour='red')",
+    "```\n",
+    "\n"
+  )
+
+plots2 <- lapply(
+  unique(assays[[1]]), 
+  function(i) knitr::knit_expand(text = template2)
+)
+```
+`r knitr::knit(text = unlist(plots2))`
 
 ## {-}
 
