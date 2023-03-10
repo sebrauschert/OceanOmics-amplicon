@@ -23,3 +23,15 @@ install.packages("devtools", repos = 'http://cran.rstudio.com/')
 devtools::install_github("tobiasgf/lulu")
 
 install.packages("optparse")
+
+install.packages("tidyverse")
+
+install.packages("png")
+
+install.packages("ggplot2")
+
+install.packages("scales")
+
+install.packages("reshape2")
+
+install.packages("tibble")

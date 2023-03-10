@@ -7,6 +7,7 @@ params:
   voyage:
   assays:
   random_samples:
+  database:
   sequencing_run: "NA"
 
 knit: (function(inputFile, encoding) {
@@ -41,6 +42,7 @@ assays  <- params$assays %>%
   strsplit(",") 
 random_samples <- params$random_samples %>%
   strsplit(",") 
+database <- params$database
 sequencing_run  <- params$sequencing_run
 
 # The working directory will be in /scripts/report/
@@ -88,7 +90,13 @@ for (i in assays[[1]]) {
 # We'll use these to determine number of LCA's at species level, genus level, etc
 phyloseq_objects <- list()
 for (i in assays[[1]]) {
-  curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_nt.rds", sep=""))
+  if (database == "nt") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_nt.rds", sep="")) 
+  } else if (database == "ocom") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_ocom.rds", sep=""))
+  } else if (database == "custom") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_custom.rds", sep=""))
+  }
   
   phyloseq_objects[[i]] <- curr_phylo_object@tax_table %>%
   data.frame() %>%
