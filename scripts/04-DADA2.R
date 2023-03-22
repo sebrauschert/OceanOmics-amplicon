@@ -28,7 +28,15 @@ option_list = list(
   make_option(c("-m", "--minOverlap"), action="store", default=12, type='integer',
               help="min overlap when merging pairs, default 12"),
   make_option(c("-x", "--maxMismatch"), action="store", default=0, type='integer',
-              help="max mismatch of merge region, default 0"))
+              help="max mismatch of merge region, default 0"),
+  make_option(c("-s", "--trimSide"), action="store", default="Left", type='character',
+              help="'Left' or 'Right' to trim on the left or right side of reads"),
+  make_option(c("-o", "--trimR1"), action="store", default=0, type='integer',
+              help="length of trimming on read one"),
+  make_option(c("-t", "--trimR2"), action="store", default=0, type='integer',
+              help="length of trimming on read two"),
+  make_option(c("-i", "--single_end"), action="store", default=FALSE, type='logical',
+              help="TRUE or FALSE; setting this to TRUE will allow single end analysis instead of pair end analysis"))
 
 opt = parse_args(OptionParser(option_list=option_list))
 
@@ -38,6 +46,10 @@ pool         <- opt$pool
 cores        <- opt$cores
 min_overlap  <- opt$minOverlap
 max_mismatch <- opt$maxMismatch
+trimSide     <- opt$trimSide
+trimR1       <- opt$trimR1
+trimR2       <- opt$trimR2
+single_end   <- opt$single_end
 
 # Making sure that we keep the booleans when required and a character for the pseudo option
 option <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseudo"))
@@ -46,18 +58,22 @@ option <- ifelse(pool %in% "TRUE", TRUE, ifelse(pool %in% "FALSE", FALSE, "pseud
 # define path
 path         <- paste0("01-demultiplexed/", assay)
 list.files(path)
-  
-# loading index file
-tags <- read_csv(paste0("00-raw-data/indices/", voyage, "_indices.csv"))
-  
+    
 # read in fastq files
-fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
-fnRs <- sort(list.files(path, pattern="2.fq", full.names = TRUE))
-  
-# extract the short sample name from the filename
-sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".1.fq.gz")))))
-sample.names_Rs <- as.character(sapply(basename(fnRs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".2.fq.gz")))))
-  
+if (single_end) {
+  fnFs <- sort(list.files(path, pattern=".fq", full.names = TRUE))
+  # extract the short sample name from the filename
+  sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".fq.gz")))))
+
+} else {
+  fnFs <- sort(list.files(path, pattern="1.fq", full.names = TRUE))
+  fnRs <- sort(list.files(path, pattern="2.fq", full.names = TRUE))
+
+  # extract the short sample name from the filename
+  sample.names_Fs <- as.character(sapply(basename(fnFs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".1.fq.gz")))))
+  sample.names_Rs <- as.character(sapply(basename(fnRs), function(x) unlist(stringr::str_remove(x,paste0("_",assay,".2.fq.gz")))))
+}
+    
 # Take a random subset of the samples and save one quality plot at 
 # a time so we can later on add them to the analysis report
 set.seed(4)
@@ -69,68 +85,59 @@ for(i in sample(1:length(fnFs), 3, replace=FALSE)){
   ggsave(plot = qualityprofile_Fs, 
          filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_raw.png"),
          height = 5, width = 7)
+
+  if (! single_end) {  
+    qualityprofile_Rs <- plotQualityProfile(fnRs[i])
     
-  qualityprofile_Rs <- plotQualityProfile(fnRs[i])
-    
-  ggsave(plot = qualityprofile_Rs, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_raw.png"),
-         height = 5, width = 7)
+    ggsave(plot = qualityprofile_Rs, 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_raw.png"),
+           height = 5, width = 7)
+  }
 }
-  
-# check barcode lengths
-head(tags)
-
-# We can't use assay for the variable name because the subset() function
-# might get all rows where the assay column is equal to the assay column
-a    <- assay
-tags <- subset(tags, assay==a)
-
-# Check that the correct columns exist in the indices file
-if (! 'index_seq_Fw' %in% colnames(tags))
-{
-  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Fw' column"));
-}
-
-if (! 'index_seq_Rv' %in% colnames(tags)) {
-  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'index_seq_Rv' column"));
-}
-
-if (! 'full_primer_seq_Fw' %in% colnames(tags)) {
-  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Fw' column"));
-}
-
-if (! 'full_primer_seq_Rv' %in% colnames(tags)) {
-  stop(paste0("Please make sure 00-raw-data/indices/", voyage, "_indices.csv contains a 'full_primer_seq_Rv' column"));
-}
-
-len_barcode_Fw <- unique(nchar(tags$index_seq_Fw))
-len_barcode_Rv <- unique(nchar(tags$index_seq_Rv))
-len_primer_Fw <- unique(nchar(tags$full_primer_seq_Fw))
-len_primer_Rv <- unique(nchar(tags$full_primer_seq_Rv))
-  
-# trim length of primer without barcode
-trim_len_Fw <- len_primer_Fw - len_barcode_Fw
-trim_len_Rv <- len_primer_Rv - len_barcode_Rv
   
 # Assigns file names and place filtered files in filtered/sub directory
 filtered_path    <- file.path(paste0("03-dada2/filtered_", voyage, "_", assay))
-filtFs <- file.path(filtered_path,
+if (single_end) {
+  filtFs <- file.path(filtered_path,
+                    paste0(sample.names_Fs, "_", assay, "_trimmed.fq.gz"))
+  names(filtFs) <- sample.names_Fs
+
+} else {
+  filtFs <- file.path(filtered_path,
                     paste0(sample.names_Fs, "_", assay, "_1_trimmed.fq.gz"))
-filtRs <- file.path(filtered_path,
+  filtRs <- file.path(filtered_path,
                     paste0(sample.names_Rs, "_", assay, "_2_trimmed.fq.gz"))
-names(filtFs) <- sample.names_Fs
-names(filtRs) <- sample.names_Rs
+  names(filtFs) <- sample.names_Fs
+  names(filtRs) <- sample.names_Rs
+}
   
-# Trimming based on quality + barcode/primer removal
-## the maxEE = expected error - filtering based on quality
-  
-out <- filterAndTrim(fnFs, filtFs,
-                     fnRs, filtRs,
-                     trimLeft = c(trim_len_Fw,trim_len_Rv),
-                     compress=TRUE,
-                     multithread=cores)
+# trim depending on users input
+if (toupper(trimSide) == "LEFT" & single_end) {
+  out <- filterAndTrim(fnFs, filtFs,
+                       trimLeft = trimR1,
+                       compress=TRUE,
+                       multithread=cores)
+} else if (toupper(trimSide) == "RIGHT" & single_end) {
+  out <- filterAndTrim(fnFs, filtFs,
+                       trimRight = trimR1,
+                       compress=TRUE,
+                       multithread=cores)
+} else if (toupper(trimSide) == "LEFT") {
+  out <- filterAndTrim(fnFs, filtFs,
+                       fnRs, filtRs,
+                       trimLeft = c(trimR1, trimR2),
+                       compress=TRUE,
+                       multithread=cores)
+} else if (toupper(trimSide) == "RIGHT") {
+  out <- filterAndTrim(fnFs, filtFs,
+                       fnRs, filtRs,
+                       trimRight = c(trimR1, trimR2),
+                       compress=TRUE,
+                       multithread=cores)
+} else {
+  stop(paste0("trimSide must be 'Left' or 'Right'; trimSide is: ", trimSide));
+}
 head(out)
-  
   
 #......................................................................................
 # CHECKPOINT Save the result
@@ -152,23 +159,31 @@ for(i in sample(1:length(fnFs), 3, replace=FALSE)){
   ggsave(plot = qualityprofile_Fs, 
          filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Fs_", i, "_", assay,"_trimmed.png"),
          height = 5, width = 7)
+
+  if (! single_end) {  
+    qualityprofile_Rs <- plotQualityProfile(filtRs[i])
     
-  qualityprofile_Rs <- plotQualityProfile(filtRs[i])
-    
-  ggsave(plot = qualityprofile_Rs, 
-         filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_trimmed.png"),
-         height = 5, width = 7)
+    ggsave(plot = qualityprofile_Rs, 
+           filename = paste0("03-dada2/QC_plots/", voyage, "_qualityprofile_Rs_", i, "_", assay, "_trimmed.png"),
+           height = 5, width = 7)
+  }
 }
-  
   
   
 # Learn the error rates
 errors_forward <- learnErrors(filtFs, multithread = cores)
-errors_reverse <- learnErrors(filtRs, multithread = cores)
+
+if (! single_end) {
+  errors_reverse <- learnErrors(filtRs, multithread = cores)
+}
   
 #......................................................................................
 # CHECKPOINT Save the result
-save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_pooled_error_rates.RData"))
+if (single_end) {
+  save(errors_forward, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_pooled_error_rates.RData"))
+} else {
+  save(errors_forward, errors_reverse, file = paste0("03-dada2/errorModel/", voyage, "_", assay,"_pooled_error_rates.RData"))
+}
 #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_error_rates.RData"))
 #......................................................................................
   
@@ -178,11 +193,14 @@ ggsave(plot = errorsplot_Fs,
        filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Fs_", assay,".png"),
        height = 5, 
        width = 7)
-errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
-ggsave(plot = qualityprofile_Rs, 
-       filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Rs_", assay, ".png"),
-       height = 5, 
-       width = 7)
+
+if (! single_end) {
+  errorsplot_Rs <- plotErrors(errors_reverse, nominalQ = TRUE)
+  ggsave(plot = qualityprofile_Rs, 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_errorsplot_Rs_", assay, ".png"),
+         height = 5, 
+         width = 7)
+}
   
 # De-replication - check if we should do this if we want abundance estimates
 ## supposedly for high resolution sample interference from amplicon data - removes sequencing errors
@@ -190,13 +208,19 @@ derep_forward        <- derepFastq(filtFs, verbose = TRUE)
 names(derep_forward) <- sample.names_Fs
 head(derep_forward)
   
-derep_reverse        <- derepFastq(filtRs, verbose = TRUE)
-names(derep_reverse) <- sample.names_Rs
-head(derep_reverse)
-  
+if (! single_end) {
+  derep_reverse        <- derepFastq(filtRs, verbose = TRUE)
+  names(derep_reverse) <- sample.names_Rs
+  head(derep_reverse)
+}
+
 #......................................................................................
 # CHECKPOINT Save the result
-save(derep_forward, derep_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
+if (single_end) {
+  save(derep_forward, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
+} else {
+  save(derep_forward, derep_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_dereplicated.RData"))
+}
 #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay,"_", site, "_dereplicated.RData"))
 #......................................................................................
 
@@ -206,36 +230,48 @@ dada_forward <- dada(derep_forward,
                      pool = option, 
                      multithread = cores,
                      verbose = TRUE)
-  
-dada_reverse <- dada(derep_reverse, 
-                     err = errors_reverse, 
-                     pool = option, 
-                     multithread = cores,
-                     verbose = TRUE)
-  
+
+if (! single_end) {
+  dada_reverse <- dada(derep_reverse, 
+                       err = errors_reverse, 
+                       pool = option, 
+                       multithread = cores,
+                       verbose = TRUE)
+}
+
 #......................................................................................
 # CHECKPOINT Save the result
-save(dada_forward, dada_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
+if (single_end) {
+  save(dada_forward, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
+} else {
+  save(dada_forward, dada_reverse, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
+}
 #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
 #......................................................................................
   
 # merge paired end reads
-mergers <- mergePairs(dada_forward, 
-                      filtFs, 
-                      dada_reverse, 
-                      filtRs,
-                      minOverlap = min_overlap,
-                      maxMismatch = max_mismatch,
-                      verbose=TRUE)
-  
-#......................................................................................
-# CHECKPOINT Save the result
-save(mergers, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
-#load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
-#......................................................................................
+if (! single_end) {
+  mergers <- mergePairs(dada_forward, 
+                        filtFs, 
+                        dada_reverse, 
+                        filtRs,
+                        minOverlap = min_overlap,
+                        maxMismatch = max_mismatch,
+                        verbose=TRUE)
+
+  #......................................................................................
+  # CHECKPOINT Save the result
+  save(mergers, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
+  #load(paste0("/03-dada2/tmpfiles/", voyage, "_", assay, "_merged.RData"))
+  #......................................................................................
+}
   
 # Construct Sequence Table
-seq_table <- makeSequenceTable(mergers)
+if (single_end) {
+  seq_table <- makeSequenceTable(dada_forward)
+} else {
+  seq_table <- makeSequenceTable(mergers)
+}
 #dim(seq_table)
   
 # inspect distribution of sequence lengths
@@ -299,78 +335,116 @@ save(seq_table_nochim, file = paste0("03-dada2/tmpfiles/", voyage, "_", assay, "
 sum(seq_table_nochim) / sum(seq_table2)
 dim(seq_table_nochim) [2] / dim(seq_table2)[2]
   
-  # read back in the previous outputs for tracking
+# read back in the previous outputs for tracking
 out <- readRDS(paste0("03-dada2/tmpfiles/", voyage, "_", assay,"_filterAndTrim_out.rds"))
 load(paste0("03-dada2/tmpfiles/", voyage, "_", assay, "_core_sample_inference.RData"))
   
   
 ## Overview of counts throughout
 getN <- function(x) sum(getUniques(x))
+
+if (single_end) {
+  #track reads
+  track_Fs <- cbind(out, sapply(dada_forward, getN), rowSums(seq_table_nochim))  %>%
+    as.data.frame() %>%
+    mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
+  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "nonchim", "percentage_retained")
+  rownames(track_Fs) <- sample.names_Fs
+  head(track_Fs)
+  tail(track_Fs)
+  write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
+
+} else { 
+  #forward reads track
+  track_Fs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
+    as.data.frame() %>%
+    mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
+  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
+  rownames(track_Fs) <- sample.names_Fs
+  head(track_Fs)
+  tail(track_Fs)
+  write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
   
-#forward reads track
-track_Fs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
-  as.data.frame() %>%
-  mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-colnames(track_Fs) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
-rownames(track_Fs) <- sample.names_Fs
-head(track_Fs)
-tail(track_Fs)
-write.table(track_Fs, file = paste0("03-dada2/QC_plots/Track_reads_Fw_",assay))
-  
-#reverse reads track
-track_Rs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
-  as.data.frame() %>%
-  mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-colnames(track_Rs) <-  c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
-rownames(track_Rs) <- sample.names_Rs
-head(track_Rs)
-tail(track_Rs)
-write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
-  
+  #reverse reads track
+  track_Rs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
+    as.data.frame() %>%
+    mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
+  colnames(track_Rs) <-  c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
+  rownames(track_Rs) <- sample.names_Rs
+  head(track_Rs)
+  tail(track_Rs)
+  write.table(track_Rs, file = paste0("03-dada2/QC_plots/Track_reads_Rs_",assay))
+}  
 #summary(track_Fs$nonchim)
 #summary(track_Rs$nonchim)
+
+if (single_end) {
+  # plot out tracking of sample reads through stages ####
+  samps_Fs <- row.names(track_Fs)
+  track_df_Fs <- data.frame(track_Fs) %>%
+    mutate(samps = samps_Fs,
+           site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
+    gather('stage', 'reads', c(input, filtered, denoisedF, nonchim, percentage_retained))
+
+  # create plots
+  track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "nonchim")), reads)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
+    scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Fs$site)))) +
+    ylab('Number of reads') +
+    xlab('Sequencing stage') +
+    theme_bw() +
+    theme(legend.position = "bottom")
   
-# plot out tracking of sample reads through stages ####
-samps_Fs <- row.names(track_Fs)
-track_df_Fs <- data.frame(track_Fs) %>%
-  mutate(samps = samps_Fs,
-         site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-  gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
+  # save plots
+  ggsave(plot = track_boxplot_Fw, 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_",assay,".png"),
+         height = 10, 
+         width = 12)
+
+} else {
+  # plot out tracking of sample reads through stages ####
+  samps_Fs <- row.names(track_Fs)
+  track_df_Fs <- data.frame(track_Fs) %>%
+    mutate(samps = samps_Fs,
+           site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
   
-samps_Rs <- row.names(track_Rs)
-track_df_Rs <- data.frame(track_Rs) %>%
-  mutate(samps = samps_Rs,
-         site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-  gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
+  samps_Rs <- row.names(track_Rs)
+  track_df_Rs <- data.frame(track_Rs) %>%
+    mutate(samps = samps_Rs,
+           site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
+
+  # create plots
+  track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
+    scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Fs$site)))) +
+    ylab('Number of reads') +
+    xlab('Sequencing stage') +
+    theme_bw() +
+    theme(legend.position = "bottom")
   
-# create plots
-track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
-  scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Fs$site)))) +
-  ylab('Number of reads') +
-  xlab('Sequencing stage') +
-  theme_bw() +
-  theme(legend.position = "bottom")
+  track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
+    scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Rs$site)))) +
+    ylab('Number of reads') +
+    xlab('Sequencing stage') +
+    theme_bw() +
+    theme(legend.position = "bottom")
   
-track_boxplot_Rv <- ggplot(track_df_Rs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_point(aes(fill = site), position = position_jitter(width = 0.2, height = 0), shape = 21, alpha = 0.7, size = 2) +
-  scale_fill_manual("Site", values = colorRampPalette(brewer.pal(11, "Spectral"))(length(unique(track_df_Rs$site)))) +
-  ylab('Number of reads') +
-  xlab('Sequencing stage') +
-  theme_bw() +
-  theme(legend.position = "bottom")
-  
-# save plots
-ggsave(plot = track_boxplot_Fw, 
-       filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_",assay,".png"),
-       height = 10, 
-       width = 12)
-ggsave(plot = track_boxplot_Rv, 
-       filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Rv_",assay,".png"),
-       height = 10, 
-       width = 12)
+  # save plots
+  ggsave(plot = track_boxplot_Fw, 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Fw_",assay,".png"),
+         height = 10, 
+         width = 12)
+  ggsave(plot = track_boxplot_Rv, 
+         filename = paste0("03-dada2/QC_plots/", voyage, "_samples_through_stages_Rv_",assay,".png"),
+         height = 10, 
+         width = 12)
+}
   
 #Check if all sequences are the same length
 #plyr::count(unlist(lapply(colnames(seq_table_nochim), function(x) stringi::stri_length(x))))
