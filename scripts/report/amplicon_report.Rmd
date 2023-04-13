@@ -315,3 +315,60 @@ for (i in assays[[1]]) {
 
 \
 \
+
+## Read Counts {.tabset}
+This section shows the number of reads in the demultiplexed files (assigned) compared to the unknown and unnamed files.
+
+```{r read_counts, results='asis', echo=FALSE}
+template_seq_count <- c(
+  "### Assay: {{i}}\n",
+  "```{r read_counts_{{i}}, echo=FALSE}\n",
+  "assigned_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/')",
+  "assigned_files <- list.files(path = assigned_dir, pattern = '.fq.gz')",
+  "assigned_reads <- 0",
+  "for (file in assigned_files) {
+    fq_path        <- shQuote(file.path(assigned_dir, file))
+    line_count     <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
+    assigned_reads <- assigned_reads + (line_count/4)
+  }",
+  
+  "unknown_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/unknown/')",
+  "unknown_files <- list.files(path = unknown_dir, pattern = '.fq.gz')",
+  "unknown_reads <- 0",
+  "for (file in unknown_files) {
+    fq_path       <- shQuote(file.path(unknown_dir, file))
+    line_count    <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
+    unknown_reads <- unknown_reads + (line_count/4)
+  }",
+  
+  "unnamed_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/unnamed/')",
+  "unnamed_files <- list.files(path = unnamed_dir, pattern = '.fq.gz')",
+  "unnamed_reads <- 0",
+  "for (file in unnamed_files) {
+    fq_path       <- shQuote(file.path(unnamed_dir, file))
+    line_count    <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
+    unnamed_reads <- unnamed_reads + (line_count/4)
+  }",
+  
+  "df <- data.frame(variable = c('Assigned', 'Unknown', 'Unnamed'), value = c(assigned_reads, unknown_reads, unnamed_reads))",
+    
+  "ggplot(df, aes(x = variable, y = value)) +
+  geom_bar(stat = 'identity') + 
+  xlab('Type') +
+  ylab('Sequence count') + 
+  scale_y_continuous(labels = scales::comma)",
+  "```\n",
+  "\n"
+)
+
+plots_seq_count <- lapply(
+  unique(assays[[1]]), 
+  function(i) knitr::knit_expand(text = template_seq_count)
+)
+```
+`r knitr::knit(text = unlist(plots_seq_count))`
+
+## {-}
+
+\
+\
