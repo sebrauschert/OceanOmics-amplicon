@@ -54,5 +54,19 @@ do
     echo ${ROOT_DIR}/01-demultiplexed/${a}/
     
     # Create stats and save to file
-    seqkit stats -j ${cores} -b ${ROOT_DIR}/01-demultiplexed/${a}/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_${a}.txt
+    seqkit stats -j ${cores} -b ${ROOT_DIR}/01-demultiplexed/${a}/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_${a}_sample_level.txt
+
+    if [[ -z "${a}/unknown" ]]; 
+    then 
+        continue 
+    fi 
+    
+    seqkit stats -j ${cores} -b ${ROOT_DIR}/01-demultiplexed/${a}/unknown/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_${a}_sample_level_unknown.txt 
+    
+    if [[ -z "${a}/unnamed" ]]; 
+    then 
+        continue 
+    fi 
+    
+    seqkit stats -j ${cores} -b ${ROOT_DIR}/01-demultiplexed/${a}/unnamed/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_${a}_sample_level_unnamed.txt
 done

@@ -81,10 +81,27 @@ cat("### Sequencing run: ", sequencing_run, "\n")
 # Get sample statistics produced by SeqKit
 sample_stats <- list()
 for (i in assays[[1]]) {
-  sample_stats[[i]] <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, ".txt", sep="")) %>%
+  sample_stats[[i]] <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
   data.frame() %>%
   list()
 }
+
+reads_df <- list()
+for (i in assays[[1]]) {
+  assigned_table <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
+                    data.frame()
+  unknown_table  <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level_unknown.txt", sep="")) %>%
+                    data.frame()
+  unnamed_table  <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level_unnamed.txt", sep="")) %>%
+                    data.frame()         
+  assigned_reads <- sum(as.integer(gsub('[^0-9]', '', assigned_table$num_seqs)))
+  unknown_reads  <- sum(as.integer(gsub('[^0-9]', '', unknown_table$num_seqs))) 
+  unnamed_reads  <- sum(as.integer(gsub('[^0-9]', '', unnamed_table$num_seqs)))     
+
+  reads_df[[i]] <- data.frame(variable = c('Assigned', 'Unknown', 'Unnamed'), value = c(assigned_reads, unknown_reads, unnamed_reads)) %>%
+        list()        
+}
+
 
 # Get the tax table from the phyloseq objects
 # We'll use these to determine number of LCA's at species level, genus level, etc
@@ -319,40 +336,11 @@ for (i in assays[[1]]) {
 ## Read Counts {.tabset}
 This section shows the number of reads in the demultiplexed files (assigned) compared to the unknown and unnamed files.
 
-```{r read_counts, results='asis', echo=FALSE}
+```{r read_counts, echo=FALSE}
 template_seq_count <- c(
   "### Assay: {{i}}\n",
   "```{r read_counts_{{i}}, echo=FALSE}\n",
-  "assigned_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/')",
-  "assigned_files <- list.files(path = assigned_dir, pattern = '.fq.gz')",
-  "assigned_reads <- 0",
-  "for (file in assigned_files) {
-    fq_path        <- shQuote(file.path(assigned_dir, file))
-    line_count     <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
-    assigned_reads <- assigned_reads + (line_count/4)
-  }",
-  
-  "unknown_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/unknown/')",
-  "unknown_files <- list.files(path = unknown_dir, pattern = '.fq.gz')",
-  "unknown_reads <- 0",
-  "for (file in unknown_files) {
-    fq_path       <- shQuote(file.path(unknown_dir, file))
-    line_count    <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
-    unknown_reads <- unknown_reads + (line_count/4)
-  }",
-  
-  "unnamed_dir   <- paste0(path, '/01-demultiplexed/', '{{i}}', '/unnamed/')",
-  "unnamed_files <- list.files(path = unnamed_dir, pattern = '.fq.gz')",
-  "unnamed_reads <- 0",
-  "for (file in unnamed_files) {
-    fq_path       <- shQuote(file.path(unnamed_dir, file))
-    line_count    <- as.integer(system(sprintf('zcat %s | wc -l', fq_path), intern= TRUE))
-    unnamed_reads <- unnamed_reads + (line_count/4)
-  }",
-  
-  "df <- data.frame(variable = c('Assigned', 'Unknown', 'Unnamed'), value = c(assigned_reads, unknown_reads, unnamed_reads))",
-    
-  "ggplot(df, aes(x = variable, y = value)) +
+  "ggplot(reads_df[['{{i}}']][[1]], aes(x = variable, y = value)) +
   geom_bar(stat = 'identity') + 
   xlab('Type') +
   ylab('Sequence count') + 
