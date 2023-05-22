@@ -66,7 +66,7 @@ for ((i = 0; i < ${#filesRv[@]}; i += 2)); do
     file2=${filesRv[i+1]}
 
     # Trim and concatenate the files
-    process_files "$file1" "$file2" "1.fq" "$demux_dir" $forward_trim $reverse_trim &
+    process_files "$file1" "$file2" "2.fq" "$demux_dir" $forward_trim $reverse_trim &
 done
 wait
 
