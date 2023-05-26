@@ -54,4 +54,16 @@ do
     mv ${ROOT_DIR}/01-demultiplexed/${a}/*unknown*.fq.gz ${ROOT_DIR}/01-demultiplexed/${a}/unknown
     mv ${ROOT_DIR}/01-demultiplexed/${a}/${a}-* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
     mv ${ROOT_DIR}/01-demultiplexed/${a}/${a}_* ${ROOT_DIR}/01-demultiplexed/${a}/unnamed
+
+    # Check if any samples in rename file didn't get demultiplexed
+    samples=$(awk '{split($2, a, ".#1.fq.gz"); print a[1]}' "${ROOT_DIR}/00-raw-data/indices/Sample_name_rename_pattern_${voyageID}_${a}.txt")
+    missing_samples=()
+    for sample in $samples; do
+        if ! compgen -G "${ROOT_DIR}/01-demultiplexed/${a}/$sample*"; then
+            missing_samples+=("$sample")
+        fi
+    done
+
+    # Print the missing sample
+    printf "%s\n" "Missing samples: ${missing_samples[@]}"
 done
