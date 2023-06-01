@@ -24,12 +24,17 @@ process_files() {
     reverse_trim=$6
     prefix=$(basename "$file2" | rev | cut -d '_' -f 2- | rev)
 
-    # Trim reads
-    zcat "$file1" | sed "0~2s/^.\{$forward_trim\}//g" > "${demux_dir}/${prefix}_trimmed.${suffix}"
-    zcat "$file2" | sed "0~2s/^.\{$reverse_trim\}//g" > "${demux_dir}/${prefix}_trimmed_reverse.${suffix}"
-
+    if [[ "$suffix" == "1.fq" ]]; then
+        # Trim reads
+        zcat "$file1" | sed "0~2s/^.\{$forward_trim\}//g" > "${demux_dir}/${prefix}_trimmed.${suffix}"
+        zcat "$file2" | sed "0~2s/^.\{$reverse_trim\}//g" > "${demux_dir}/${prefix}_trimmed_reverse.${suffix}"
+    else
+        # Trim reads
+        zcat "$file1" | sed "0~2s/^.\{$reverse_trim\}//g" > "${demux_dir}/${prefix}_trimmed.${suffix}"
+        zcat "$file2" | sed "0~2s/^.\{$forward_trim\}//g" > "${demux_dir}/${prefix}_trimmed_reverse.${suffix}"
+    fi
     # Concatenate files
-    cat "${demux_dir}/${prefix}_trimmed.${suffix}" "${demux_dir}/${prefix}_trimmed_reverse.${suffix}" | gzip > "${demux_dir}/${prefix}_merged.${suffix}.gz"
+    cat "${demux_dir}/${prefix}_trimmed.${suffix}" "${demux_dir}/${prefix}_trimmed_reverse.${suffix}" | gzip > "${demux_dir}/${prefix}_concat.${suffix}.gz"
 
     # Remove files that aren't needed any more
     rm "$file1" "$file2" "${demux_dir}/${prefix}_trimmed.${suffix}" "${demux_dir}/${prefix}_trimmed_reverse.${suffix}"
@@ -70,6 +75,6 @@ for ((i = 0; i < ${#filesRv[@]}; i += 2)); do
 done
 wait
 
-for file in ${demux_dir}/*_merged.*; do 
-    mv -- "$file" "${file//_merged/}"; 
+for file in ${demux_dir}/*_concat.*; do 
+    mv -- "$file" "${file//_concat/}"; 
 done
