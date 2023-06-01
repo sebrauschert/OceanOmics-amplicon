@@ -7,6 +7,7 @@ params:
   voyage:
   assays:
   random_samples:
+  database:
   sequencing_run: "NA"
 
 knit: (function(inputFile, encoding) {
@@ -16,11 +17,11 @@ knit: (function(inputFile, encoding) {
 
 ```{r load_packages, include=FALSE}
 # this is necessary for the docker version of this script
-if(Sys.getenv("ANALYSIS") == ""){
+if(Sys.getenv("ANALYSIS") == "") {
 
   next
 
-}else{
+} else {
 
   setwd(Sys.getenv("ANALYSIS"))
 
@@ -41,6 +42,7 @@ assays  <- params$assays %>%
   strsplit(",") 
 random_samples <- params$random_samples %>%
   strsplit(",") 
+database <- params$database
 sequencing_run  <- params$sequencing_run
 
 # The working directory will be in /scripts/report/
@@ -79,16 +81,39 @@ cat("### Sequencing run: ", sequencing_run, "\n")
 # Get sample statistics produced by SeqKit
 sample_stats <- list()
 for (i in assays[[1]]) {
-  sample_stats[[i]] <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, ".txt", sep="")) %>%
+  sample_stats[[i]] <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
   data.frame() %>%
   list()
 }
+
+reads_df <- list()
+for (i in assays[[1]]) {
+  assigned_table <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
+                    data.frame()
+  unknown_table  <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level_unknown.txt", sep="")) %>%
+                    data.frame()
+  unnamed_table  <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level_unnamed.txt", sep="")) %>%
+                    data.frame()         
+  assigned_reads <- sum(as.integer(gsub('[^0-9]', '', assigned_table$num_seqs)))
+  unknown_reads  <- sum(as.integer(gsub('[^0-9]', '', unknown_table$num_seqs))) 
+  unnamed_reads  <- sum(as.integer(gsub('[^0-9]', '', unnamed_table$num_seqs)))     
+
+  reads_df[[i]] <- data.frame(variable = c('Assigned', 'Unknown', 'Unnamed'), value = c(assigned_reads, unknown_reads, unnamed_reads)) %>%
+        list()        
+}
+
 
 # Get the tax table from the phyloseq objects
 # We'll use these to determine number of LCA's at species level, genus level, etc
 phyloseq_objects <- list()
 for (i in assays[[1]]) {
-  curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_nt.rds", sep=""))
+  if (database == "nt") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_nt.rds", sep="")) 
+  } else if (database == "ocom") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_ocom.rds", sep=""))
+  } else if (database == "custom") {
+    curr_phylo_object <- readRDS(paste(path, "/06-report/", voyage, "_", i, "_phyloseq_custom.rds", sep=""))
+  }
   
   phyloseq_objects[[i]] <- curr_phylo_object@tax_table %>%
   data.frame() %>%
@@ -124,6 +149,33 @@ plots <- lapply(
 )
 ```
 `r knitr::knit(text = unlist(plots))`
+
+## {-}
+
+\
+\
+
+## Q30% {.tabset}
+Lets also view density plots to visualise the output of the Q30% statistics created by SeqKit.
+
+```{r sample_stats_q30, echo=FALSE}
+
+template2 <- c(
+    "### Assay: {{i}}\n",
+    "```{r Q30{{i}}, echo=FALSE}\n",
+
+    "ggplot(sample_stats[['{{i}}']][[1]], aes(x=Q30...)) + \
+    geom_bar(colour='red')",
+    "```\n",
+    "\n"
+  )
+
+plots2 <- lapply(
+  unique(assays[[1]]), 
+  function(i) knitr::knit_expand(text = template2)
+)
+```
+`r knitr::knit(text = unlist(plots2))`
 
 ## {-}
 
@@ -275,6 +327,34 @@ for (i in assays[[1]]) {
 }
 
 ```
+
+## {-}
+
+\
+\
+
+## Read Counts {.tabset}
+This section shows the number of reads in the demultiplexed files (assigned) compared to the unknown and unnamed files.
+
+```{r read_counts, echo=FALSE}
+template_seq_count <- c(
+  "### Assay: {{i}}\n",
+  "```{r read_counts_{{i}}, echo=FALSE}\n",
+  "ggplot(reads_df[['{{i}}']][[1]], aes(x = variable, y = value)) +
+  geom_bar(stat = 'identity') + 
+  xlab('Type') +
+  ylab('Sequence count') + 
+  scale_y_continuous(labels = scales::comma)",
+  "```\n",
+  "\n"
+)
+
+plots_seq_count <- lapply(
+  unique(assays[[1]]), 
+  function(i) knitr::knit_expand(text = template_seq_count)
+)
+```
+`r knitr::knit(text = unlist(plots_seq_count))`
 
 ## {-}
 
