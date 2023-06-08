@@ -79,7 +79,7 @@ tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
   # Prepare the metadata
   meta             <- as.data.frame(meta)
 
-  if (! sample_id %in% colnames(meta)) {
+  if (! "sample_id" %in% colnames(meta)) {
     stop(paste0("Please make sure ", samples_df, " contains a 'sample_id' column"));
   }
 
@@ -172,7 +172,7 @@ if(option == "custom"){
   # Prepare the metadata
   meta             <- as.data.frame(meta)
 
-  if (! sample_id %in% colnames(meta))
+  if (! "sample_id" %in% colnames(meta))
   {
     stop(paste0("Please make sure ", samples_df, " contains a sample_id column"));
   }
