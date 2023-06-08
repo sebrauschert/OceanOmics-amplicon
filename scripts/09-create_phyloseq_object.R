@@ -79,12 +79,12 @@ tree_mat   <- paste0('05-taxa/',voyage,'_',assay,'_final_tab_', suffix, '.csv')
   # Prepare the metadata
   meta             <- as.data.frame(meta)
 
-  if (! 'Sample ID' %in% colnames(meta)) {
-    stop(paste0("Please make sure ", samples_df, " contains a 'Sample ID' column"));
+  if (! sample_id %in% colnames(meta)) {
+    stop(paste0("Please make sure ", samples_df, " contains a 'sample_id' column"));
   }
 
-  rownames(meta)   <- meta$`Sample ID`
-  meta$`Sample ID` <- NULL
+  rownames(meta)   <- meta$sample_id
+  meta$sample_id <- NULL
 
   # Prepare the taxa data
   taxa["LCA"] <- ""
@@ -172,13 +172,13 @@ if(option == "custom"){
   # Prepare the metadata
   meta             <- as.data.frame(meta)
 
-  if (! 'Sample ID' %in% colnames(meta))
+  if (! sample_id %in% colnames(meta))
   {
-    stop(paste0("Please make sure ", samples_df, " contains a 'Sample ID' column"));
+    stop(paste0("Please make sure ", samples_df, " contains a sample_id column"));
   }
 
-  rownames(meta)   <- meta$`Sample ID`
-  meta$`Sample ID` <- NULL
+  rownames(meta)   <- meta$sample_id
+  meta$sample_id <- NULL
 
   # Prepare the taxa data
   taxa["LCA"] <- ""
