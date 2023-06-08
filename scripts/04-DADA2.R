@@ -144,19 +144,25 @@ out_df <- data.frame(out)
 
 # First get the row numbers of the empty samples
 empty_samples <- which(out_df$reads.out == 0)
+if (length(empty_samples) > 0) {
+  # Filter out empty samples, these data structures should all have the same order
+  out <- out_df[-empty_samples, ]
+  filtFs <- filtFs[-empty_samples]
+  filtRs <- filtRs[-empty_samples]
+  fnFs <- fnFs[-empty_samples]
+  fnRs <- fnRs[-empty_samples]
+  sample.names_Fs <- sample.names_Fs[-empty_samples]
+  sample.names_Rs <- sample.names_Rs[-empty_samples]
 
-# Filter out empty samples, these data structures should all have the same order
-out <- out_df[-empty_samples, ]
-filtFs <- filtFs[-empty_samples]
-filtRs <- filtRs[-empty_samples]
-fnFs <- fnFs[-empty_samples]
-fnRs <- fnRs[-empty_samples]
-sample.names_Fs <- sample.names_Fs[-empty_samples]
-sample.names_Rs <- sample.names_Rs[-empty_samples]
-
-empty_samples_out <- out_df[empty_samples, ]
-empty_samples_out <- rownames_to_column(empty_samples_out, "sample")
-write_csv(empty_samples_out, paste0("03-dada2/", voyage, "_" ,assay,"_samples_empty_after_filter.csv"))
+  empty_samples_out <- out_df[empty_samples, ]
+  empty_samples_out <- rownames_to_column(empty_samples_out, "sample")
+  write_csv(empty_samples_out, paste0("03-dada2/", voyage, "_" ,assay, "_samples_empty_after_filter.csv"))
+} else {
+  columns <- c("sample", "reads.in", "reads.out")
+  empty_samples_out <- data.frame(matrix(nrow = 0, ncol = length(columns)))
+  colnames(empty_samples_out) <- columns 
+  write_csv(empty_samples_out, paste0("03-dada2/", voyage, "_" ,assay, "_samples_empty_after_filter.csv"))
+}
 
 #......................................................................................
 # CHECKPOINT Save the result
