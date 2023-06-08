@@ -155,6 +155,7 @@ sample.names_Fs <- sample.names_Fs[-empty_samples]
 sample.names_Rs <- sample.names_Rs[-empty_samples]
 
 empty_samples_out <- out_df[empty_samples, ]
+empty_samples_out <- rownames_to_column(empty_samples_out, "sample")
 write_csv(empty_samples_out, paste0("03-dada2/", voyage, "_" ,assay,"_samples_empty_after_filter.csv"))
 
 #......................................................................................
@@ -366,7 +367,7 @@ if (single_end) {
   track_Fs <- cbind(out, sapply(dada_forward, getN), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "nonchim", "percentage_retained")
+  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "nonchim")
   rownames(track_Fs) <- sample.names_Fs
   head(track_Fs)
   tail(track_Fs)
@@ -377,7 +378,7 @@ if (single_end) {
   track_Fs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
+  colnames(track_Fs) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
   rownames(track_Fs) <- sample.names_Fs
   head(track_Fs)
   tail(track_Fs)
@@ -387,7 +388,7 @@ if (single_end) {
   track_Rs <- cbind(out, sapply(dada_forward, getN), sapply(dada_reverse, getN), sapply(mergers, getN), rowSums(seq_table_nochim))  %>%
     as.data.frame() %>%
     mutate(final_perc_reads_retained = round(rowSums(seq_table_nochim)/out[,1]*100, 1))
-  colnames(track_Rs) <-  c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim", "percentage_retained")
+  colnames(track_Rs) <-  c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
   rownames(track_Rs) <- sample.names_Rs
   head(track_Rs)
   tail(track_Rs)
@@ -402,7 +403,7 @@ if (single_end) {
   track_df_Fs <- data.frame(track_Fs) %>%
     mutate(samps = samps_Fs,
            site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-    gather('stage', 'reads', c(input, filtered, denoisedF, nonchim, percentage_retained))
+    gather('stage', 'reads', c(input, filtered, denoisedF, nonchim))
 
   # create plots
   track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "nonchim")), reads)) +
@@ -426,13 +427,13 @@ if (single_end) {
   track_df_Fs <- data.frame(track_Fs) %>%
     mutate(samps = samps_Fs,
            site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim))
 
   samps_Rs <- row.names(track_Rs)
   track_df_Rs <- data.frame(track_Rs) %>%
     mutate(samps = samps_Rs,
            site = sapply(strsplit(samps, "_"), `[`, 1)) %>%
-    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim, percentage_retained))
+    gather('stage', 'reads', c(input, filtered, denoisedF, denoisedR, merged, nonchim))
 
   # create plots
   track_boxplot_Fw <- ggplot(track_df_Fs, aes(forcats::fct_relevel(stage, c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")), reads)) +
