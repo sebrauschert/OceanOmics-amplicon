@@ -86,6 +86,22 @@ for (i in assays[[1]]) {
   list()
 }
 
+# Get the samples missing after the rename step of Cutadapt
+missing_samples <- list()
+for (i in assays[[1]]) {
+  missing_samples[[i]] <- readLines(paste(path, "/02-QC/missing_samples_", i, ".txt", sep="")) %>%
+  data.frame() %>%
+  list()
+}
+
+# Get sample filtered out during DADA2
+filtered_samples <- list()
+for (i in assays[[1]]) {
+  filtered_samples[[i]] <- read_csv(paste(path, "/03-dada2/", voyage, "_", i, "_samples_empty_after_filter.csv", sep="")) %>%
+  data.frame() %>%
+  list()
+}
+
 reads_df <- list()
 for (i in assays[[1]]) {
   assigned_table <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
@@ -121,6 +137,38 @@ for (i in assays[[1]]) {
 }
 ```
 ----------------------------------------------------------------------------------------------------------------------------\
+\
+
+## Samples missing after demultiplex {.tabset}
+These are the samples missing after the rename step of the demultiplex pipeline.
+
+```{r samples_missing, results = 'asis', echo=FALSE}
+for (i in assays[[1]]){
+  cat("### Assay: ", i, "\n")
+  cat(unlist(missing_samples[[i]]), sep = "\n")
+  cat("\n")
+}
+```
+
+## {-}
+
+\
+\
+
+## Samples filtered out during DADA2 {.tabset}
+These are the samples filtered out during the filter and trim step of DADA2.
+
+```{r samples_filtered, results = 'asis', echo=FALSE}
+for (i in assays[[1]]){
+  cat("### Assay: ", i, "\n")
+  cat(unlist(filtered_samples[[i]][[1]][["sample"]]), sep = "\n\n")
+  cat("\n")
+}
+```
+
+## {-}
+
+\
 \
 
 ## Density Plots {.tabset}

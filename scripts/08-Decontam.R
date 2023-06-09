@@ -69,7 +69,7 @@ if(option %in% c("nt", "ocom")){
   # Flag all ASV sequences identified in control samples
   for (i in demux_files){
     for (pattern in control_grep_patterns) {
-      if (grepl(pattern, i, fixed = TRUE)) {
+      if (grepl(pattern, i, fixed = TRUE) && (i %in% names(lca_tab))) {
         lca_tab$Contam[lca_tab[i] >0] <- "True"
       }
     }
@@ -106,7 +106,7 @@ if(option == "custom"){
   # Flag all ASV sequences identified in control samples
   for (i in demux_files){
     for (pattern in control_grep_patterns) {
-      if (grepl(pattern, i, fixed = TRUE)) {
+      if (grepl(pattern, i, fixed = TRUE) && (i %in% names(lca_tab))) {
         lca_tab$Contam[lca_tab[i] >0] <- "True"
       }
     }
