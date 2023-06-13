@@ -66,4 +66,6 @@ do
 
     # Print the missing sample
     printf "%s\n" "Missing samples: ${missing_samples[@]}"
+
+    printf "%s\n" "Missing samples: ${missing_samples[@]}" > ${ROOT_DIR}/02-QC/missing_samples_${a}.txt
 done

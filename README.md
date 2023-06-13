@@ -34,6 +34,8 @@ run_blastnt.sh                         - blast against NCBI nt database
 LCA                                    - LCA scripts and dependencies from [eDNAflow](https://github.com/mahsa-mousavi/eDNAFlow) pipeline 
 LULU                                   - all functions required for LULU: 01-lulu_create_match_list.sh, and 02-LULU.R
 report                                 - Rmarkdown script for creating the amplicon_report at the end of the pipeline
+create_demux_dependencies.R            - R script to create files needed for demultiplexing
+post_demux_pipeline_script.sh          - If using OceanOmics-demultiplex-pipeline Nextflow pipeline for demultiplexing, use this script to move output files into correct location for the rest of this pipeline
 ```
 
 ### Data
@@ -151,7 +153,7 @@ export CODE=$(pwd)/scripts
 
 #### (optional) Demultiplexing
 
-Some amplicon data needs to be demultiplexed. We store indices for demultiplexing in a voyageID/assayID structure. For each voyage and each assay we need two files in `00-raw-data/indices`: `voyageID_assayID_Fw.fa` and `voyageID_assayID_Rv.fa`. Please add these manually.
+Some amplicon data needs to be demultiplexed. Demultiplexing can be performed with the [OceanOmics-demultiplex-pipeline](https://github.com/a4000/OceanOmics-demultiplex-pipeline), if using this method, perform demultiplexing in a sub directory, then run `post_demux_pipeline_script.sh` from within your main working directory (the directory that has 00-raw-data, etc). If you are not using the demultiplex pipeline, you can still demultiplex with the scripts found in this pipeline. We store indices for demultiplexing in a voyageID/assayID structure. For each voyage and each assay we need two files in `00-raw-data/indices`: `voyageID_assayID_Fw.fa` and `voyageID_assayID_Rv.fa`. Please add these manually.
 
 Then, to run the demultiplexing with those indices:
 
