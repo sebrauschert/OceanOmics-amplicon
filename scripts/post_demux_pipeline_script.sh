@@ -19,7 +19,7 @@ mkdir -p 01-demultiplexed/${assay}
 mkdir 02-QC
 mkdir 06-report
 
-cp ${demux_out_dir}/renamed_fqs/missing_sample.txt 02-QC/missing_sample_${assay}.txt
+cp ${demux_out_dir}/renamed_fqs/missing_samples.txt 02-QC/missing_samples_${assay}.txt
 cp ${demux_out_dir}/seqkit_stats/assigned_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level.txt
 cp ${demux_out_dir}/seqkit_stats/unknown_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level_unknown.txt
 cp ${demux_out_dir}/seqkit_stats/unnamed_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level_unnamed.txt
@@ -29,3 +29,5 @@ cp ${demux_out_dir}/index_file/indices.csv 00-raw-data/indices/${voyageID}_${ass
 cp ${demux_out_dir}/demux_dependencies/${assay}_fw.fa 00-raw-data/indices/${voyageID}_${assay}_fw.fa
 cp ${demux_out_dir}/demux_dependencies/${assay}_rv.fa 00-raw-data/indices/${voyageID}_${assay}_rv.fa
 cp ${demux_out_dir}/demux_dependencies/${assay}_sample_name_rename_pattern.txt 00-raw-data/indices/${voyageID}_${assay}_sample_name_rename_pattern.txt
+
+echo post demux pipeline script finished
