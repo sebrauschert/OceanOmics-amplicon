@@ -43,7 +43,8 @@ set -x
 exec 1>logs/06-run_blast.nt.log 2>&1
 
 # print stats on the NT database for later
-blastdbcmd -info -db /data/tools/databases/ncbi-nt/nt > logs/06-run_blast_nt_database_information.log
+blastdbcmd -info -db nt > $ANALYSIS/logs/06-run_blast_nt_database_information.log
+
 
 # Now we can use the LULU curated fasta file for the blastn input
 echo blasting ${voyageID} ${assay} ASVs
@@ -55,7 +56,7 @@ if [ -n "$ANALYSIS" ]
 fi
 
 
-blastn -db /data/tools/databases/ncbi-nt/nt \
+blastn -db nt \
        -query 04-LULU/LULU_curated_fasta_${voyageID}_${assay}.fa \
        -num_threads ${cores} \
        -outfmt "6 qseqid sseqid staxids sscinames scomnames sskingdoms pident length qlen slen mismatch gapopen gaps qstart qend sstart send stitle evalue bitscore qcovs qcovhsp" \
