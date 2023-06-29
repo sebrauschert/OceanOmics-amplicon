@@ -42,6 +42,12 @@ exec 1>logs/03-seqkit_stats.log 2>&1
 echo "Main directory is:"
 echo $ROOT_DIR
 
+echo "Raw data directory is:"
+echo ${ROOT_DIR}/00-raw_data/
+    
+# Create stats and save to file
+seqkit stats -j ${cores} -b ${ROOT_DIR}/00-raw_data/*.fq.gz -a > 02-QC/Sample_statistics_${voyageID}_raw_data.txt
+
 # Loop over assays and voyages for rename
 for a in ${assay[@]}
 do

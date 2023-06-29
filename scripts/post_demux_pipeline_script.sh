@@ -20,6 +20,7 @@ mkdir 02-QC
 mkdir 06-report
 
 cp ${demux_out_dir}/renamed_fqs/missing_samples.txt 02-QC/missing_samples_${assay}.txt
+cp ${demux_out_dir}/seqkit_stats/raw_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_raw_data.txt
 cp ${demux_out_dir}/seqkit_stats/assigned_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level.txt
 cp ${demux_out_dir}/seqkit_stats/unknown_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level_unknown.txt
 cp ${demux_out_dir}/seqkit_stats/unnamed_seqkit_stats.txt 02-QC/Sample_statistics_${voyageID}_${assay}_sample_level_unnamed.txt

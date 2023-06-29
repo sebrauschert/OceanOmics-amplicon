@@ -89,21 +89,39 @@ for (i in assays[[1]]) {
 # Get the samples missing after the rename step of Cutadapt
 missing_samples <- list()
 for (i in assays[[1]]) {
-  missing_samples[[i]] <- readLines(paste(path, "/02-QC/missing_samples_", i, ".txt", sep="")) %>%
-  data.frame() %>%
-  list()
+  if (file.exists(paste(path, "/02-QC/missing_samples_", i, ".txt", sep=""))) {
+    missing_samples[[i]] <- readLines(paste(path, "/02-QC/missing_samples_", i, ".txt", sep="")) %>%
+    data.frame() %>%
+    list()
+  }
 }
 
 # Get sample filtered out during DADA2
 filtered_samples <- list()
 for (i in assays[[1]]) {
-  filtered_samples[[i]] <- read_csv(paste(path, "/03-dada2/", voyage, "_", i, "_samples_empty_after_filter.csv", sep="")) %>%
-  data.frame() %>%
-  list()
+  if (file.exists(paste(path, "/03-dada2/", voyage, "_", i, "_samples_empty_after_filter.csv", sep=""))) {
+    filtered_samples[[i]] <- read_csv(paste(path, "/03-dada2/", voyage, "_", i, "_samples_empty_after_filter.csv", sep="")) %>%
+    data.frame() %>%
+    list()
+  }
 }
 
-reads_df <- list()
+reads_df  <- list()
+assigned_dfs <- list()
+unknown_dfs  <- list()
+unnamed_dfs  <- list()
+assay_vector <- c("Raw Reads")
+stage_vector <- c()
+raw_table <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_raw_data.txt", sep="")) %>%
+             data.frame()
+track_stages <- c("Raw Data")
+track_reads  <- c(raw_table$num_seqs[1])
+track_assays <- c("Raw Reads")
+track_types  <- c("Raw reads")
+
 for (i in assays[[1]]) {
+  assay_vector   <- append(assay_vector, i)
+  stage_vector   <- append(stage_vector, paste0("Demultiplexed ", i))
   assigned_table <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level.txt", sep="")) %>%
                     data.frame()
   unknown_table  <- read_table(paste(path, "/02-QC/Sample_statistics_", voyage, "_", i, "_sample_level_unknown.txt", sep="")) %>%
@@ -115,9 +133,26 @@ for (i in assays[[1]]) {
   unnamed_reads  <- sum(as.integer(gsub('[^0-9]', '', unnamed_table$num_seqs)))     
 
   reads_df[[i]] <- data.frame(variable = c('Assigned', 'Unknown', 'Unnamed'), value = c(assigned_reads, unknown_reads, unnamed_reads)) %>%
-        list()        
-}
+        list()  
+  assigned_dfs[[i]] <- assigned_table %>% list()
+  unknown_dfs[[i]]  <- unknown_table %>% list()
+  unnamed_dfs[[i]]  <- unnamed_table %>% list()  
 
+  track_stages <- append(track_stages, paste0("Demux Samples ", i))
+  track_stages <- append(track_stages, paste0("Demux unnamed ", i))
+  track_stages <- append(track_stages, paste0("Demux unknown ", i))
+  track_reads  <- append(track_reads, sum(assigned_table$num_seqs)/2)
+  track_reads  <- append(track_reads, sum(unnamed_table$num_seqs)/2)
+  track_reads  <- append(track_reads, sum(unknown_table$num_seqs)/2)
+  track_assays <- append(track_assays, rep(i, 3))
+  track_types  <- append(track_types, "Samples")
+  track_types  <- append(track_types, "Unnamed")
+  track_types  <- append(track_types, "Unknown")
+}
+reads_tracking <- tibble(Stage = track_stages,
+                         Reads = track_reads,
+                         Assay = track_assays,
+                         Type = track_types)
 
 # Get the tax table from the phyloseq objects
 # We'll use these to determine number of LCA's at species level, genus level, etc
@@ -388,11 +423,18 @@ This section shows the number of reads in the demultiplexed files (assigned) com
 template_seq_count <- c(
   "### Assay: {{i}}\n",
   "```{r read_counts_{{i}}, echo=FALSE}\n",
-  "ggplot(reads_df[['{{i}}']][[1]], aes(x = variable, y = value)) +
-  geom_bar(stat = 'identity') + 
-  xlab('Type') +
-  ylab('Sequence count') + 
-  scale_y_continuous(labels = scales::comma)",
+  "tibble(Library = c('Samples', 'Unknown', 'Unnamed'),
+          Reads = c(sum(assigned_dfs[['{{i}}']][[1]]$num_seqs)/2, sum(unknown_dfs[['{{i}}']][[1]]$num_seqs)/2, sum(unnamed_dfs[['{{i}}']][[1]]$num_seqs)/2),
+          Voyage = voyage) %>%
+
+  ggplot( aes(x=Voyage, y=Reads, fill = Library, label = scales::comma(Reads))) +
+  geom_bar(position='stack', stat='identity') +
+  geom_text(size = 4, color = 'black', position = position_stack(vjust = 0.5)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = 'Number of reads across the libraries on the sequencing run',
+       subtitle = voyage)",
   "```\n",
   "\n"
 )
@@ -403,6 +445,38 @@ plots_seq_count <- lapply(
 )
 ```
 `r knitr::knit(text = unlist(plots_seq_count))`
+
+## {-}
+
+\
+\
+
+## Tracking Reads
+This section shows the number of reads in the demultiplexed files for all assays compared to the raw data.
+
+```{r TEST_counts, echo=FALSE}
+template_TEST_count <- c(
+  "```{r TESTy_counts, echo=FALSE}\n",
+  "reads_tracking %>%
+         filter(Assay %in% assay_vector) %>%
+         filter(!Stage %in% stage_vector) %>%
+
+         ggplot( aes(x=Assay, y=Reads, fill = Type, label = scales::comma(Reads))) +
+         geom_bar(position='stack', stat='identity') +
+         geom_text(size = 4, color = 'black', position = position_stack(vjust = 0.5)) +
+         theme_bw() +
+         theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+         scale_y_continuous(labels = scales::comma) +
+         labs(title = 'Number of reads across the demultiplexing and renaming stages',
+              subtitle = voyage)",
+  "```\n",
+  "\n"
+)
+
+plots_TEST_count <- knitr::knit_expand(text = template_TEST_count)
+
+```
+`r knitr::knit(text = unlist(plots_TEST_count))`
 
 ## {-}
 
