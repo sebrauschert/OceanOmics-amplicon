@@ -108,6 +108,12 @@ ARG PATH=/opt/amplicon_pipeline:$PATH
 # Create a mount directory to write to
 RUN mkdir -p /mnt/scratch
 
+#========================================================================================================
+# Create a Mountpoint for the NCBI nt database; careful! this requires the creation of a docker volume!
+RUN mkdir -p /mnt/db
+RUN sed -i '$ a BLASTDB=/mnt/db' /etc/environment
+ENV BLASTDB /mnt/db
+
 #==================================================================================================================
 # Making sure that docker starts in the working directory that we mount to the current working directory
 # so that we do not need to include an additional path into the scripts. That way, we can add the Dockerfile to the
@@ -118,5 +124,6 @@ RUN mkdir -p /mnt/scratch
 
 ENV CODE=/opt/amplicon_pipeline/
 ENV ANALYSIS=/mnt/scratch/
+ENV BLASTDIR=$BLASTDB
 
 WORKDIR /mnt/scratch
