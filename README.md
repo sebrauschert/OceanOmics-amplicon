@@ -1,5 +1,6 @@
 # OceanOmics Amplicon Pipeline
 
+NOTE: This pipeline is now superseded by an implementation in nextflow, following the nf-core guidelines. It also integrates the eDNAflow pipeline and functionality, to reduce redundancy. Please use [MinderooFoundation/OceanOmics-amplicon-nf](https://github.com/MinderooFoundation/OceanOmics-amplicon-nf/tree/master) instead!
 
 <p align="center">
   <img width="330" height="300" src="img/OceanOmics.png">
